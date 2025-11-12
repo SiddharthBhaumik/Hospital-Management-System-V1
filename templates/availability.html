@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Set Availability</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+<div class="container py-5">
+  <h2 class="mb-4 text-center">Set Your Availability for the Next 7 Days</h2>
+
+  <form action="/save_availability" method="POST">
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+
+      {% for i in range(7) %}
+        {% set current_date = (today + timedelta(days=i)).strftime("%Y-%m-%d") %}
+        <div class="col">
+          <div class="card h-100 shadow-sm">
+            <div class="card-header bg-primary text-white">
+              {{ current_date }}
+            </div>
+            <div class="card-body">
+              <h6 class="card-title">Select Available Time Slots</h6>
+
+              {% set slots = ["08:00-10:00","10:00-12:00","12:00-14:00","14:00-16:00","16:00-18:00"] %}
+              {% for slot in slots %}
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox"
+                         name="availability[{{ current_date }}][]"
+                         id="{{ current_date }}_{{ loop.index }}"
+                         value="{{ slot }}">
+                  <label class="form-check-label" for="{{ current_date }}_{{ loop.index }}">
+                    {{ slot }}
+                  </label>
+                </div>
+              {% endfor %}
+
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+
+    </div>
+
+    <button type="submit" class="btn btn-success w-100 mt-4">Save Availability</button>
+  </form>
+</div>
+
+</body>
+</html>
