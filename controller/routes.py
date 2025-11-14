@@ -1,9 +1,15 @@
-from flask import Blueprint,render_template,request,flash,url_for,redirect
-from werkzeug.security import generate_password_hash
+from flask import Blueprint,render_template,request,redirect, url_for, flash
+from flask_login import LoginManager,login_user,current_user,login_required
 from controller.models import *
-from flask_login import current_user,login_required
+from werkzeug.security import check_password_hash,generate_password_hash
 
-main =Blueprint('main',__name__ )
+main=Blueprint('main',__name__)
+
+login_manager=LoginManager()
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 @main.route('/', methods=['GET'])
 def home():
@@ -15,19 +21,28 @@ def home():
 def register():
     if request.method=='GET':
         return render_template('register.html')
-    elif request.method=='POST':      
+    elif request.method=='POST': 
+        name=request.form.get('name')    
+        gender=request.form.get('gender') 
+        phone_no=request.form.get('phone_no') 
         email = request.form.get('email')
         username = request.form.get('username')
         password = request.form.get('password')
 
-        existing_user = User.query.filter((User.email == email) | (User.username == username)).first()
+        # Check if email already exists
+        email_exists = User.query.filter_by(email=email).first()
+        if email_exists:
+            flash("Email already exists!", "danger")
+            return render_template('register.html', name=name, gender=gender, phone_no=phone_no, email=email, username=username)
 
-        print("Email:", email, "Username:", username, "Password:", password)
-        print("Existing user:", existing_user)
+# Check if username already exists
+        username_exists = User.query.filter_by(username=username).first()
+        if username_exists:
+            flash("Username already exists!", "danger")
+            return render_template('register.html', name=name, gender=gender, phone_no=phone_no, email=email, username=username)
 
-        if existing_user:
-            flash("Email or username already exists!", "danger")
-            return render_template('register.html')
+# If both are unique, continue creating user
+
         
         patient_role = Roles.query.filter_by(role='Patient').first()
         patient_user = User(
@@ -37,14 +52,14 @@ def register():
             role=patient_role
         )
         patient=Patient(
-            user=patient_user
+            name=name,gender=gender,phone_no=phone_no,user=patient_user
         )
 
         try:
             db.session.add(patient)
             db.session.commit()
             flash("Patient registered successfully!", "success")
-            return redirect(url_for('auth.patient_login'))
+            return redirect(url_for('main.patient_login'))
         except Exception as e:
             db.session.rollback()
             flash(f"Error registering patient: {str(e)}", "danger")
@@ -61,8 +76,52 @@ def dashboard():
         return render_template('Doctor/doctor_dashboard.html')
     elif current_user.role.role == 'Admin':
         return render_template('Admin/admin_dashboard.html')
-    
-        
 
+@main.route('/patient_login',methods=['GET','POST'])
+def patient_login():
+    if request.method=='GET':
+        return render_template('patient_login.html')
+    if request.method=='POST':
+        email= request.form.get('email')
+        username = request.form.get('username')
+        password = request.form.get('password')
+
+        user = User.query.filter((User.email == email) & (User.username == username)).first()
+
+        if user and check_password_hash(user.password, password) and user.role.role=='Patient':
+            if user.blacklisted:
+                flash("Your Account has been blacklisted" , "danger")
+                return render_template('staff_login.html')
+            login_user(user)
+            flash("Logged in successfully!", "success")
+            return redirect(url_for('main.dashboard'))  
+        else:
+            flash("Invalid credentials!", "danger")
+            return render_template('patient_login.html')
+
+@main.route('/staff_login',methods=['GET','POST'])
+def staff_login():
+    if request.method=='GET':
+        return render_template('staff_login.html')
+    if request.method=='POST':
+        email = request.form.get('email')
+        username = request.form.get('username')
+        password = request.form.get('password')
+        role = request.form.get('role')
+
+        user = User.query.filter((User.email == email) & (User.username == username)).first()
+
+        if user and check_password_hash(user.password, password) and user.role.role==role:
+            if user.blacklisted:
+                flash("Your Account has been blacklisted" , "danger")
+                return render_template('staff_login.html')
+            login_user(user)
+            flash("Logged in successfully!", "success")
+            return redirect(url_for('main.dashboard'))  
+        else:
+            flash("Invalid credentials!" , "danger")
+            return render_template('staff_login.html')
+
+    
 
 

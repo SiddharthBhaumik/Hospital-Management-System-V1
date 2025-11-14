@@ -1,0 +1,50 @@
+{% extends "Admin/base.html" %}
+
+{% block title %}Add Doctor{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Edit Doctor Profile</h2>
+    <form action="{{ url_for('admin.admin_create_doctor') }}" method="POST">
+        
+        <!-- Doctor info -->
+        <div class="mb-3">
+            <label for="name" class="form-label">Full Name</label>
+            <input type="text" class="form-control" id="name" name="name" required
+            maxlength="50"
+            placeholder="Enter the Full Name"
+            value="{{ doctor.name }}">
+        </div>
+
+        <div class="mb-3">
+            <label for="department" class="form-label">Department</label>
+            <select class="form-select" id="department" name="department_id" required>
+                <option value="" disabled selected>Select Department</option>
+                {% for dept in departments %}
+                    <option value="{{ dept.department_id }}">{{ dept.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="experience" class="form-label">Experience (Years)</label>
+            <input type="number" class="form-control" id="experience" name="experience" min="0" required
+            placeholder="Enter Experience"
+            value="{{ doctor.experience }}">
+        </div>
+
+        <div class="mb-3">
+            <label for="about" class="form-label">About</label>
+            <textarea class="form-control" id="about" name="about" rows="6" required
+            maxlength="1000"
+            placeholder="Give a brief description"
+            value="{{ doctor.about}}"></textarea>
+            </textarea>
+        </div>
+
+        <!-- Submit & Back -->
+        <button type="submit" class="btn btn-primary">Create Doctor</button>
+        <a href="{{ url_for('admin.admin_doctors') }}" class="btn btn-secondary ms-2">Back</a>
+    </form>
+</div>
+{% endblock %}

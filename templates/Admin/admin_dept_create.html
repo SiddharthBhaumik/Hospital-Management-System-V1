@@ -1,0 +1,70 @@
+{% extends "Admin/base.html" %}
+
+{% block title %}Create Department{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <!-- Card -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white text-center">
+                    <h4 class="mb-0">Create New Department</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Flash messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                      {% if messages %}
+                        {% for category, message in messages %}
+                          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                          </div>
+                        {% endfor %}
+                      {% endif %}
+                    {% endwith %}
+
+                    <!-- Department Creation Form -->
+                    <form method="POST" action="{{ url_for('admin.admin_create_department') }}">
+                        <!-- Department Name -->
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Department Name</label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                id="name" 
+                                name="name" 
+                                placeholder="Enter department name" 
+                                value="{{ name or ''}}"
+                                required 
+                                maxlength="50"
+                            >
+                        </div>
+
+                        <!-- Department Description -->
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea 
+                                class="form-control" 
+                                id="description" 
+                                name="description" 
+                                rows="6" 
+                                placeholder="Enter department description"
+                                value="{{ description or ''}}"
+                                required 
+                                maxlength="1000"
+                            ></textarea>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('admin.admin_departments') }}" class="btn btn-secondary">Back</a>
+                            <button type="submit" class="btn btn-primary">Create Department</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

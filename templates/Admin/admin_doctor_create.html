@@ -1,0 +1,75 @@
+{% extends "Admin/base.html" %}
+
+{% block title %}Add Doctor{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Create New Doctor</h2>
+    <form action="{{ url_for('admin.admin_create_doctor') }}" method="POST">
+        <!-- User info -->
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" required
+            placeholder="Enter doctor's email"
+            value="{{ email or '' }}" >
+        </div>
+
+        <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" class="form-control" id="username" name="username" 
+            value="{{ username or '' }}" 
+            required 
+            maxlength="20" minlength="6"
+            placeholder="Choose a username"
+            title="Username must be 6–20 characters long.">
+        </div>
+
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" name="password" required
+            maxlength="50" minlength="8"
+            placeholder="Enter a password"
+            title="Password must be at least 8 characters long.">
+        </div>
+
+        <!-- Doctor info -->
+        <div class="mb-3">
+            <label for="name" class="form-label">Full Name</label>
+            <input type="text" class="form-control" id="name" name="name" required
+            maxlength="50"
+            placeholder="Enter the Full Name"
+            value="{{ name or '' }}">
+        </div>
+
+        <div class="mb-3">
+            <label for="department" class="form-label">Department</label>
+            <select class="form-select" id="department" name="department_id" required>
+                <option value="" disabled selected>Select Department</option>
+                {% for dept in departments %}
+                    <option value="{{ dept.department_id }}">{{ dept.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="experience" class="form-label">Experience (Years)</label>
+            <input type="number" class="form-control" id="experience" name="experience" min="0" required
+            placeholder="Enter Experience"
+            value="{{ experience or '' }}">
+        </div>
+
+        <div class="mb-3">
+            <label for="about" class="form-label">About</label>
+            <textarea class="form-control" id="about" name="about" rows="6" required
+            maxlength="1000"
+            placeholder="Give a brief description"
+            value="{{ about or '' }}"></textarea>
+            </textarea>
+        </div>
+
+        <!-- Submit & Back -->
+        <button type="submit" class="btn btn-primary">Create Doctor</button>
+        <a href="{{ url_for('admin.admin_doctors') }}" class="btn btn-secondary ms-2">Back</a>
+    </form>
+</div>
+{% endblock %}

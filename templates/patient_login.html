@@ -19,7 +19,7 @@
             <h4 class="mb-0">Patient Login</h4>
           </div>
           <div class="card-body">
-            <form method="POST" action="{{ url_for('auth.patient_login') }}">
+            <form method="POST" action="{{ url_for('main.patient_login') }}">
               
               <!-- Email -->
               <div class="mb-3">
@@ -44,8 +44,8 @@
                   name="username" 
                   placeholder="Enter your username" 
                   required 
-                  maxlength="20" minlength="6"
-                  title="Username must be 6-20 characters long."
+                  maxlength="20" minlength="5"
+                  title="Username must be 5-20 characters long."
                 />
               </div>
 
