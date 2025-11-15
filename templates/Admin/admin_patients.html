@@ -1,0 +1,86 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Patients | Admin{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+    <h2 class="mb-4">Patients</h2>
+
+    <!-- Search Bar with Dropdown -->
+    <form method="GET" action="{{ url_for('admin.admin_patients') }}" class="mb-4">
+        <div class="input-group">
+
+            <!-- Dropdown for search by options -->
+            <select name="search_by" class="form-select" style="max-width: 200px;">
+                <option value="name" {% if search_by == 'name' or search_by == '' %}selected{% endif %}>Name</option>
+                <option value="id" {% if search_by == 'id' %}selected{% endif %}>Patient ID</option>
+                <option value="email" {% if search_by == 'email' %}selected{% endif %}>Email</option>
+                <option value="phone" {% if search_by == 'phone' %}selected{% endif %}>Phone</option>
+            </select>
+
+            <!-- Input field for the search query -->
+            <input type="text" name="query" class="form-control"
+                placeholder="Search..."
+                value="{{ query }}">
+
+            <!-- Submit button -->
+            <button type="submit" class="btn btn-secondary">Search</button>
+
+        </div>
+    </form>
+
+
+    <!-- Patients List -->
+    <div class="table-responsive">
+        <table class="table table-bordered align-middle">
+
+            <tbody>
+                {% for patient in patients %}
+                <!-- Row 1: Patient Info -->
+                <tr class="table-light">
+                    <td>
+                        <strong>ID:</strong> {{ patient.patient_id }} <br>
+                        <strong>Name:</strong> {{ patient.name }} <br>
+                        <strong>Email:</strong> {{ patient.user.email }} <br>
+                        <strong>Phone:</strong> {{ patient.phone_no }}
+                    </td>
+                </tr>
+
+                <!-- Row 2: Action Buttons -->
+                <tr>
+                    <td class="text-center">
+
+                        <a href="{{ url_for('admin.admin_edit_patient', patient_id=patient.patient_id) }}"
+                           class="btn btn-warning btn-sm mx-1">Edit</a>
+
+                        <a href="{{ url_for('admin.admin_patient_blacklist', patient_id=patient.patient_id) }}"
+                           class="btn btn-sm mx-1
+                               {% if patient.user.blacklisted %}btn-success{% else %}btn-secondary{% endif %}">
+                            {% if patient.user.blacklisted %}
+                                Unblacklist
+                            {% else %}
+                                Blacklist
+                            {% endif %}
+                        </a>
+
+                        <!-- Delete Link -->
+                        <a href="{{ url_for('admin.admin_delete_patient', patient_id=patient.patient_id) }}"
+                           class="btn btn-danger btn-sm mx-1"
+                           onclick="return confirm('Delete this patient? This cannot be undone.');">
+                            Delete
+                        </a>
+
+                    </td>
+                </tr>
+
+                <!-- Spacer Row -->
+                <tr class="table-secondary"><td></td></tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+    </div>
+
+</div>
+{% endblock %}

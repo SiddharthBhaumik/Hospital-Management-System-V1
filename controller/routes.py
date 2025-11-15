@@ -73,7 +73,7 @@ def dashboard():
     if current_user.role.role == 'Patient':
         return render_template('Patient/patient_dashboard.html')
     elif current_user.role.role == 'Doctor':
-        return render_template('Doctor/doctor_dashboard.html')
+        return redirect(url_for('doctor.doctor_dashboard'))
     elif current_user.role.role == 'Admin':
         return render_template('Admin/admin_dashboard.html')
 

@@ -9,12 +9,29 @@
 </div>
 
 <!-- Combined Search bar -->
-<form class="mb-4" method="GET" action="{{url_for('admin.admin_doctors')}}">
+<form class="mb-4" method="GET" action="{{ url_for('admin.admin_doctors') }}">
     <div class="input-group">
-        <input type="text" name="query" class="form-control" placeholder="Search by name or department">
+
+        <!-- Dropdown -->
+        <select name="search_by" class="form-select" style="max-width: 180px;">
+            <option value="name" {% if search_by == 'name'or search_by == '' %}selected{% endif %}>Doctor Name</option>
+            <option value="department" {% if search_by == 'department' %}selected{% endif %}>Department</option>
+        </select>
+        
+        <input 
+            type="text"
+            name="query"
+            class="form-control"
+            placeholder="Search..."
+            value="{{ query }}"
+        >
+
+        <!-- Submit button -->
         <button type="submit" class="btn btn-secondary">Search</button>
+
     </div>
 </form>
+
 
 <!-- Doctors Table -->
 <table class="table table-striped table-hover">
@@ -32,12 +49,15 @@
             <td>{{ doctor.department.name }}</td>
             <td>
                 <a href="{{url_for('admin.admin_doctors_edit', doctor_id=doctor.doctor_id)}}" class="btn btn-warning btn-sm">Edit</a>
-                {% if not doctor.user.blacklisted %}
-                    <a href="{{ url_for('admin.admin_doctors_blacklist', doctor_id=doctor.doctor_id) }}" class="btn btn-secondary btn-sm">Blacklist</a>
-                {% else %}
-                    <a href="{{ url_for('admin.admin_doctors_blacklist', doctor_id=doctor.doctor_id) }}" class="btn btn-success btn-sm">Unblacklist</a>
-                {% endif %}
-                <a href="{{ url_for('admin.admin_doctors_remove', doctor_id=doctor.doctor_id) }}" class="btn btn-danger btn-sm">Remove</a>
+                <a href="{{ url_for('admin.admin_doctors_blacklist', doctor_id=doctor.doctor_id)}}" class="btn btn-sm 
+                        {% if doctor.user.blacklisted %}btn-success{% else %}btn-secondary{% endif %}">
+                    {% if patient.user.blacklisted %}
+                        Unblacklist
+                    {% else %}
+                        Blacklist
+                    {% endif %}
+                </a>
+                <a href="{{ url_for('admin.admin_doctors_delete', doctor_id=doctor.doctor_id) }}" class="btn btn-danger btn-sm">Delete</a>
             </td>
         </tr>
         {% else %}

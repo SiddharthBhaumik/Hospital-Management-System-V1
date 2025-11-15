@@ -1,0 +1,109 @@
+{% extends "Doctor/base.html" %}
+
+{% block title %}Doctor Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- PROVIDE AVAILABILITY BUTTON -->
+<div class="mb-4 text-end">
+    <a href="{{ url_for('doctor.provide_availability') }}" 
+       class="btn btn-primary">
+       Provide Availability
+    </a>
+</div>
+
+
+<!-- UPCOMING APPOINTMENTS -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-primary text-white">
+        Upcoming Appointments
+    </div>
+    <div class="card-body">
+
+        {% if appointments %}
+        <table class="table table-striped table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Patient Name</th>
+                    <th>Date & Time</th>
+                    <th>History</th>
+                    <th>Treatment</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for appt in appointments %}
+                <tr>
+                    <td>{{ appt.patient.name }}</td>
+                    <td>{{ appt.datetime.strftime('%d-%m-%Y %I:%M %p') }}</td>
+
+                    <td>
+                        <a href="{{ url_for('doctor.patient_history', patient_id=appt.patient_id) }}"
+                           class="btn btn-sm btn-info">
+                           View History
+                        </a>
+                    </td>
+
+                    <td>
+                        <a href="{{ url_for('doctor.enter_treatment', appointment_id=appt.appointment_id) }}"
+                           class="btn btn-sm btn-success">
+                           Enter Treatment
+                        </a>
+                    </td>
+
+                    <td>
+                        <a href="{{ url_for('doctor.update_appointment_status', appointment_id=appt.appointment_id, status='Completed') }}"
+                           class="btn btn-sm btn-primary">Complete</a>
+
+                        <a href="{{ url_for('doctor.update_appointment_status', appointment_id=appt.appointment_id, status='Cancelled') }}"
+                           class="btn btn-sm btn-danger">Cancel</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% else %}
+            <p class="text-muted">No upcoming appointments.</p>
+        {% endif %}
+    </div>
+</div>
+
+
+<!-- ASSIGNED PATIENTS -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-secondary text-white">
+        Assigned Patients
+    </div>
+    <div class="card-body">
+
+        {% if patients %}
+        <table class="table table-striped table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>Patient Name</th>
+                    <th>History</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for patient in patients %}
+                <tr>
+                    <td>{{ patient.name }}</td>
+                    <td>
+                        <a href="{{ url_for('doctor.patient_history', patient_id=patient.patient_id) }}"
+                           class="btn btn-sm btn-info">View History</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% else %}
+            <p class="text-muted">No assigned patients.</p>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

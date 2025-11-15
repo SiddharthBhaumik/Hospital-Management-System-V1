@@ -1,0 +1,133 @@
+{% extends "Admin/base.html" %}
+
+{% block title %}Appointments Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <h2 class="mb-4">Appointments Dashboard</h2>
+
+    <!-- Filters + Search -->
+    <form method="GET" action="{{ url_for('admin.admin_appointments') }}" class="mb-4">
+        <div class="row g-3">
+
+            <!-- Department -->
+            <div class="col-md-3">
+                <label class="form-label">Department</label>
+                <select name="department_id" class="form-select">
+                    <option value="">All Departments</option>
+                    {% for dept in departments %}
+                        <option value="{{ dept.department_id }}"
+                            {% if selected_department == dept.department_id %}selected{% endif %}>
+                            {{ dept.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Patient -->
+            <div class="col-md-3">
+                <label class="form-label">Patient</label>
+                <select name="patient_id" class="form-select">
+                    <option value="">All Patients</option>
+                    {% for p in patients %}
+                        <option value="{{ p.patient_id }}"
+                            {% if selected_patient == p.patient_id %}selected{% endif %}>
+                            {{ p.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Doctor -->
+            <div class="col-md-3">
+                <label class="form-label">Doctor</label>
+                <select name="doctor_id" class="form-select">
+                    <option value="">All Doctors</option>
+                    {% for d in doctors %}
+                        <option value="{{ d.doctor_id }}"
+                            {% if selected_doctor == d.doctor_id %}selected{% endif %}>
+                            {{ d.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Status -->
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="upcoming"  {% if selected_status == "upcoming" %}selected{% endif %}>Upcoming</option>
+                    <option value="cancelled" {% if selected_status == "cancelled" %}selected{% endif %}>Cancelled</option>
+                    <option value="completed" {% if selected_status == "completed" %}selected{% endif %}>Completed</option>
+                </select>
+            </div>
+
+            <!-- Search -->
+            <div class="col-md-9">
+                <label class="form-label">Search</label>
+                <input type="text" class="form-control" name="query" placeholder="Search appointments..."
+                       value="{{ query }}">
+            </div>
+
+            <!-- Submit -->
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+            </div>
+
+        </div>
+    </form>
+
+    <!-- Appointment List -->
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Doctor</th>
+                    <th>Patient</th>
+                    <th>Department</th>
+                    <th>Date & Time</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% if appointments %}
+                    {% for appt in appointments %}
+                    <tr>
+                        <td>{{ appt.doctor.name }}</td>
+                        <td>{{ appt.patient.name }}</td>
+                        <td>{{ appt.doctor.department.name }}</td>
+                        <td>{{ appt.datetime.strftime('%d %b %Y, %I:%M %p') }}</td>
+
+                        <!-- Status column also contains "View Details" only if completed -->
+                        <td class="text-capitalize">
+                            {{ appt.status }}
+                            
+                            {% if appt.status == 'completed' %}
+                                <a href="{{ url_for('admin.admin_appointment_details', appointment_id=appt.appointment_id) }}"
+                                   class="btn btn-sm btn-outline-secondary ms-2">
+                                   View Details
+                                </a>
+                            {% endif %}
+                        </td>
+
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-3 text-muted">
+                            No appointments found.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+
+        </table>
+    </div>
+
+</div>
+
+{% endblock %}

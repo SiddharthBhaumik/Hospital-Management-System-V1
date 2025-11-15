@@ -1,20 +1,31 @@
 from controller.routes import main,login_manager
 from controller.admin_routes import admin
+from controller.doctor_routes import doctor
 from controller.config import config
 from controller.models import Roles,User,db
 from werkzeug.security import generate_password_hash
-from flask import Flask
+from flask import Flask,flash,redirect,url_for
+from flask_login import current_user,logout_user
 
 # INIT
 
 app =Flask(__name__ , template_folder='templates',static_folder='static')
 app.register_blueprint(main)
 app.register_blueprint(admin)
+app.register_blueprint(doctor)
 login_manager.init_app(app)
 app.config.from_object(config)
 db.init_app(app)
 
 login_manager.login_view='main.home'
+
+@app.before_request
+def force_logout_blacklisted():
+    if current_user.is_authenticated and current_user.blacklisted:
+        logout_user()
+        flash("Your account has been disabled.", "danger")
+        return redirect(url_for('main.home'))
+
 
 # DATABASE CREATION
 
