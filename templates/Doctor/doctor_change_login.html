@@ -1,0 +1,89 @@
+{% extends "Doctor/base.html" %}
+
+{% block title %}Edit Login Details{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Edit Login Details</h5>
+                </div>
+
+                <div class="card-body">
+                    <!-- show flashes if any -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                      {% if messages %}
+                        {% for category, msg in messages %}
+                          <div class="alert alert-{{ category }} alert-sm" role="alert">
+                              {{ msg }}
+                          </div>
+                        {% endfor %}
+                      {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" action="{{ url_for('doctor.doctor_edit_login_details') }}">
+                        <!-- include CSRF token if you use WTForms/Flask-WTF -->
+                        {% if csrf_token %}
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input
+                                type="text"
+                                id="username"
+                                name="username"
+                                class="form-control"
+                                placeholder="Choose a username"
+                                value="{{ user.username }}"
+                                required
+                                maxlength="50"
+                            >
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input
+                                type="email"
+                                id="email"
+                                name="email"
+                                class="form-control"
+                                placeholder="you@example.com"
+                                value="{{ user.email }}"
+                                required
+                            >
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">New Password <small class="text-muted">(leave blank to keep current password)</small></label>
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                class="form-control"
+                                placeholder="Enter new password (optional)"
+                                minlength="6"
+                                maxlength="50"
+                                autocomplete="new-password"
+                            >
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                                <a href="{{ url_for('doctor.doctor_dashboard') }}" class="btn btn-secondary ms-2">Cancel</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card-footer text-muted small">
+                    You will be logged out after changing details.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

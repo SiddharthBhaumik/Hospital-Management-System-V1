@@ -30,7 +30,8 @@ class Patient(db.Model):
     patient_id=db.Column(db.Integer,primary_key=True,autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.user_id'), nullable=False)
     name=db.Column(db.String(50), nullable=False)
-    gender=db.Column(db.String(10), nullable=False)
+    dob=db.Column(db.Date,nullable=False)
+    gender=db.Column(db.Enum('Male', 'Female', 'Other'),nullable=False)
     phone_no=db.Column(db.String(15), nullable=False)
 
     user = db.relationship('User', uselist=False,lazy="joined")

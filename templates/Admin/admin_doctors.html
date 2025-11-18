@@ -51,7 +51,7 @@
                 <a href="{{url_for('admin.admin_doctors_edit', doctor_id=doctor.doctor_id)}}" class="btn btn-warning btn-sm">Edit</a>
                 <a href="{{ url_for('admin.admin_doctors_blacklist', doctor_id=doctor.doctor_id)}}" class="btn btn-sm 
                         {% if doctor.user.blacklisted %}btn-success{% else %}btn-secondary{% endif %}">
-                    {% if patient.user.blacklisted %}
+                    {% if doctor.user.blacklisted %}
                         Unblacklist
                     {% else %}
                         Blacklist

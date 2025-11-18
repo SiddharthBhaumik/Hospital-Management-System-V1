@@ -282,34 +282,41 @@ def admin_patients():
             query=query
         )
 
-@admin.route('/edit_patient/<int:patient_id>',methods=['GET','POST'])
+@admin.route('/edit_patient/<int:patient_id>', methods=['GET', 'POST'])
 @login_required    
 def admin_edit_patient(patient_id):
     if current_user.role.role != 'Admin':
         flash("You are not authorized to perform this action.", "danger")
         return redirect(url_for('main.dashboard'))
-    else:
-        patient=Department.query.get(patient_id)
-        if not patient:
-            flash("Department not found!", "danger")
-            return redirect(url_for('admin.admin_departments'))
-        
-        if request.method=='GET':
-            return render_template('Admin/admin_dept_edit.html',patient=patient)
-        elif request.method=='POST':
-        
-            patient.name = request.form.get('name')
-            patient.gender = request.form.get('gender')
-            patient.phone_no = request.form.get('phone_no')
+    
+    patient = Patient.query.get(patient_id)
+    if not patient:
+        flash("Patient not found!", "danger")
+        return redirect(url_for('admin.admin_patients'))
 
-            try:
-                db.session.commit()  # save changes to the database
-                flash("Patient updated successfully!", "success")
-            except Exception as e:
-                db.session.rollback()  # rollback in case of error
-                flash(f"Error updating patient: {e}", "danger")
-            return redirect(url_for('admin.admin_patients'))
-        
+    if request.method == 'GET':
+        return render_template('Admin/admin_edit_patient.html', patient=patient)
+
+    elif request.method == 'POST':
+        # Basic fields
+        patient.name = request.form.get('name').strip()
+        patient.gender = request.form.get('gender')
+        patient.phone_no = request.form.get('phone_no')
+        dob_input = request.form.get('dob')
+      
+        from datetime import datetime
+        patient.dob = datetime.strptime(dob_input, "%Y-%m-%d").date()
+
+        # Save changes
+        try:
+            db.session.commit()
+            flash("Patient updated successfully!", "success")
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error updating patient: {e}", "danger")
+
+        return redirect(url_for('admin.admin_patients'))
+
 @admin.route('/blacklist_patient/<int:patient_id>')
 @login_required
 def admin_patient_blacklist(patient_id):

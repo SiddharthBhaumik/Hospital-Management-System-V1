@@ -1,0 +1,62 @@
+{% extends "Doctor/base.html" %}
+
+{% block title %}Patient History{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Patient History</h2>
+
+    <!-- Patient Info -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <h4 class="card-title">{{ patient.name }}</h4>
+            <p class="card-text">
+                <strong>Gender:</strong> {{ patient.gender }} <br>
+                <strong>Age:</strong> {{ patient.age }}
+            </p>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="mb-4">
+        <a href="{{ url_for('doctor.view_patient_history', patient_id=patient.patient_id, filter='me') }}" class="btn btn-primary me-2">
+            Treatments with Me
+        </a>
+        <a href="{{ url_for('doctor.view_patient_history', patient_id=patient.patient_id, filter='all') }}" class="btn btn-secondary">
+            Treatments from All Doctors
+        </a>
+    </div>
+
+    <!-- Treatment List -->
+    {% if treatments %}
+        <div class="accordion" id="treatmentAccordion">
+            {% for treatment in treatments %}
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="heading{{ treatment.treatment_id }}">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ treatment.treatment_id }}" aria-expanded="false" aria-controls="collapse{{ treatment.treatment_id }}">
+                        {{ treatment.datetime.strftime('%d %b %Y, %I:%M %p') }} - Doctor: {{ treatment.appointment.doctor.name }}
+                    </button>
+                </h2>
+                <div id="collapse{{ treatment.treatment_id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ treatment.treatment_id }}" data-bs-parent="#treatmentAccordion">
+                    <div class="accordion-body">
+                        <p><strong>Diagnosis:</strong> {{ treatment.diagnosis }}</p>
+                        <p><strong>Prescription:</strong> {{ treatment.prescription }}</p>
+                        {% if treatment.tests %}
+                        <p><strong>Tests:</strong> {{ treatment.tests }}</p>
+                        {% endif %}
+                        {% if treatment.notes %}
+                        <p><strong>Notes:</strong> {{ treatment.notes }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted">No treatments found for this patient.</p>
+    {% endif %}
+
+    <a href="{{ url_for('doctor.doctor_dashboard') }}" class="btn btn-secondary mt-4">Back to Dashboard</a>
+</div>
+
+{% endblock %}

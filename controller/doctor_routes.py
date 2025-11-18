@@ -1,7 +1,7 @@
 from flask import Blueprint,render_template,request,flash,url_for,redirect
 from controller.models import *
-from flask_login import current_user,login_required
-from sqlalchemy.orm import aliased
+from flask_login import current_user,login_required,logout_user
+from werkzeug.security import generate_password_hash
 
 doctor =Blueprint('doctor',__name__ )
   
@@ -40,6 +40,51 @@ def doctor_edit_login_details():
     if current_user.role.role != 'Doctor':
         return redirect(url_for('main.dashboard'))
     else:
+        if request.method=='GET':
+            return render_template("Doctor/edit_login_details.html", user=current_user)
+        elif request.method == "POST":
+            new_username = request.form.get("username").strip()
+            new_email = request.form.get("email").strip()
+            new_password = request.form.get("password").strip()
+
+            # ---- VALIDATION ----
+            # Check if username exists (exclude current user)
+            if User.query.filter(User.username == new_username,
+                                User.user_id != current_user.user_id).first():
+                flash("Username already taken. Please choose another.", "warning")
+                return redirect(url_for("doctor.doctor_edit_login_details"))
+
+            # Check if email exists
+            if User.query.filter(User.email == new_email,
+                                User.user_id != current_user.user_id).first():
+                flash("Email already in use. Please choose another.", "warning")
+                return redirect(url_for("doctor.doctor_edit_login_details"))
+
+
+            current_user.username = new_username
+            current_user.email = new_email
+
+            if new_password:
+                current_user.password = generate_password_hash(new_password)
+
+            try:
+                db.session.commit()
+
+                # If login credentials changed significantly, force re-login
+                if (new_username != current_user.username) or (new_email != current_user.email) or new_password:
+                    flash("Login details updated. Please log in again.", "success")
+                    logout_user()
+                    return redirect(url_for("auth.login"))
+
+                flash("Login details updated successfully.", "success")
+                return redirect(url_for("doctor.doctor_dashboard"))
+
+            except Exception:
+                db.session.rollback()
+                flash("An error occurred while saving changes.", "danger")
+                return redirect(url_for("doctor.edit_login_details"))
+
+        # GET request → show form
 
 @doctor.route('/treatment/<int:appointment_id>',methods=['GET','POST'])
 @login_required
@@ -132,5 +177,5 @@ def doctor_patient_history(patient_id):
     else:
         patient=Patient.query.get(patient_id)
         if not patient:
-            flash("Appointment not found for doctor!", "danger")
+            flash("Patient not found!", "danger")
             return redirect(url_for('doctor.doctor_dashboard'))
