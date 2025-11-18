@@ -79,6 +79,8 @@ def dashboard():
 
 @main.route('/patient_login',methods=['GET','POST'])
 def patient_login():
+    if current_user.is_authenticated:
+        return redirect(url_for("main.dashboard"))
     if request.method=='GET':
         return render_template('patient_login.html')
     if request.method=='POST':
@@ -101,9 +103,11 @@ def patient_login():
 
 @main.route('/staff_login',methods=['GET','POST'])
 def staff_login():
+    if current_user.is_authenticated:
+        return redirect(url_for("main.dashboard"))
     if request.method=='GET':
         return render_template('staff_login.html')
-    if request.method=='POST':
+    elif request.method=='POST':
         email = request.form.get('email')
         username = request.form.get('username')
         password = request.form.get('password')

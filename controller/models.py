@@ -21,7 +21,7 @@ class User(db.Model,UserMixin):
 class Roles(db.Model):
     __tablename__='roles'
     role_id = db.Column(db.Integer, primary_key=True,autoincrement=True)
-    role = db.Column(db.String(20),unique=True,nullable=False)
+    role = db.Column(db.Enum('Patient', 'Doctor', 'Admin'),unique=True,nullable=False)
 
     users = db.relationship('User', back_populates='role',uselist=True)
 
@@ -33,7 +33,7 @@ class Patient(db.Model):
     gender=db.Column(db.String(10), nullable=False)
     phone_no=db.Column(db.String(15), nullable=False)
 
-    user = db.relationship('User', uselist=False)
+    user = db.relationship('User', uselist=False,lazy="joined")
     appointments = db.relationship('Appointment', back_populates='patient',uselist=True)
 
 class Doctor(db.Model):
@@ -45,7 +45,7 @@ class Doctor(db.Model):
     experience=db.Column(db.Integer, nullable=False)
     about=db.Column(db.Text, nullable=False)
 
-    user = db.relationship('User', uselist=False)
+    user = db.relationship('User', uselist=False,lazy="joined")
     department = db.relationship('Department', back_populates='doctors',uselist=False) 
     availabilities = db.relationship('DoctorAvailability', back_populates='doctor',uselist=True)
     appointments = db.relationship('Appointment', back_populates='doctor',uselist=True)
@@ -63,11 +63,11 @@ class Appointment(db.Model):
     appointment_id=db.Column(db.Integer,primary_key=True,autoincrement=True)
     patient_id=db.Column(db.Integer, db.ForeignKey('patient.patient_id'), nullable=False)
     doctor_id=db.Column(db.Integer, db.ForeignKey('doctor.doctor_id'), nullable=False)
-    status=db.Column(db.String(20), nullable=False)
+    status=db.Column(db.Enum('booked', 'completed', 'cancelled'),nullable=False)
     datetime=db.Column(db.DateTime,nullable=False)
 
-    doctor = db.relationship('Doctor',back_populates='appointments', uselist=False)
-    patient = db.relationship('Patient', back_populates='appointments',uselist=False)
+    doctor = db.relationship('Doctor',back_populates='appointments', uselist=False,lazy="joined")
+    patient = db.relationship('Patient', back_populates='appointments',uselist=False,lazy="joined")
 
 class Treatment(db.Model):
     __tablename__='treatment'
@@ -78,7 +78,7 @@ class Treatment(db.Model):
     notes=db.Column(db.Text, nullable=True)
     tests=db.Column(db.Text, nullable=True)
 
-    appointment = db.relationship('Appointment', uselist=False)
+    appointment = db.relationship('Appointment', uselist=False,lazy="joined")
 
 class DoctorAvailability(db.Model):
     __tablename__ = 'doctor_availability'

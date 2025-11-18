@@ -14,13 +14,13 @@ def admin_doctors():
         search_by = request.args.get('search_by', 'name')  # default = name
         query = request.args.get('query', '').strip()
 
-        doctors = Doctor.query.join(Doctor.department)
+        doctors = Doctor.query
 
         if query:
             if search_by == 'name':
                 doctors = doctors.filter(Doctor.name.ilike(f"%{query}%"))
             elif search_by == 'department':
-                doctors = doctors.filter(Department.name.ilike(f"%{query}%"))
+                doctors = doctors.join(Doctor.department).filter(Department.name.ilike(f"%{query}%"))
 
         doctors = doctors.all()
 
@@ -124,9 +124,22 @@ def admin_doctors_blacklist(doctor_id):
         if not doctor:
             flash("Doctor not found!", "danger")
             return redirect(url_for('admin.admin_doctors'))
-        user=User.query.filter_by(user_id=doctor.user_id).first()
+        user=doctor.user
         
-        user.blacklisted=not user.blacklisted
+        user.blacklisted=not user.blacklisted # Value changes IMMEDIATELY (in Python)
+        if user.blacklisted:
+
+            blacklisted_appts = (
+            Appointment.query
+            .filter(
+                Appointment.doctor_id == doctor.doctor_id,  # ensure we only touch this doctor's appts
+                Appointment.status != "cancelled",
+                )
+            ).all()
+        
+
+            for appt in blacklisted_appts:
+                appt.status = "cancelled"
 
         try:
             db.session.commit()
@@ -248,13 +261,13 @@ def admin_patients():
         search_by = request.args.get('search_by', 'name')  # default = name
         query = request.args.get('query', '').strip()
 
-        patients = Patient.query.join(User)
+        patients = Patient.query.join(Patient.user)
 
         if query:
             if search_by == 'name':
                 patients = patients.filter(Patient.name.ilike(f"%{query}%"))
             elif search_by == 'id':
-                patients = patients.filter(Patient.patient_id.ilike(f"%{query}%"))
+                patients = patients.filter(db.cast(Patient.patient_id, db.String).ilike(f"%{query}%"))
             elif search_by == 'email':
                patients = patients.filter(User.email.ilike(f"%{query}%"))
             elif search_by == 'phone':
@@ -310,7 +323,20 @@ def admin_patient_blacklist(patient_id):
             return redirect(url_for('admin.admin_patients'))
         user=User.query.filter_by(user_id=patient.user_id).first()
         
-        user.blacklisted=not user.blacklisted
+        user.blacklisted=not user.blacklisted # Value changes IMMEDIATELY (in Python)
+        if user.blacklisted:
+
+            blacklisted_appts = (
+            Appointment.query
+            .filter(
+                Appointment.patient_id == patient.patient_id,  # ensure we only touch this doctor's appts
+                Appointment.status != "cancelled",
+                )
+            ).all()
+        
+
+            for appt in blacklisted_appts:
+                appt.status = "cancelled"
 
         try:
             db.session.commit()
@@ -337,12 +363,12 @@ def admin_appointments():
         status = request.args.get('status', '')
         query = request.args.get('query', '').strip()
 
-        # ---- Base Query (join all needed tables) ----
+       
         appointments = (
             Appointment.query
-            .join(Appointment.doctor)     # joins Doctor through relationship
-            .join(Doctor.department)      # joins Department through doctor
-            .join(Appointment.patient)    # joins Patient
+            .join(Appointment.doctor)     
+            .join(Doctor.department)   
+            .join(Appointment.patient)    
         )
 
         # ---- Apply filters ----

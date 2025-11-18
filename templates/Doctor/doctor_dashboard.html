@@ -39,24 +39,24 @@
                     <td>{{ appt.datetime.strftime('%d-%m-%Y %I:%M %p') }}</td>
 
                     <td>
-                        <a href="{{ url_for('doctor.patient_history', patient_id=appt.patient_id) }}"
+                        <a href="{{ url_for('doctor.doctor_patient_history', patient_id=appt.patient_id) }}"
                            class="btn btn-sm btn-info">
                            View History
                         </a>
                     </td>
 
                     <td>
-                        <a href="{{ url_for('doctor.enter_treatment', appointment_id=appt.appointment_id) }}"
+                        <a href="{{ url_for('doctor.doctor_treatment', appointment_id=appt.appointment_id) }}"
                            class="btn btn-sm btn-success">
-                           Enter Treatment
+                           Enter/Update Treatment
                         </a>
                     </td>
 
                     <td>
-                        <a href="{{ url_for('doctor.update_appointment_status', appointment_id=appt.appointment_id, status='Completed') }}"
+                        <a href="{{ url_for('doctor.doctor_update_appointment_status', appointment_id=appt.appointment_id, status='completed') }}"
                            class="btn btn-sm btn-primary">Complete</a>
 
-                        <a href="{{ url_for('doctor.update_appointment_status', appointment_id=appt.appointment_id, status='Cancelled') }}"
+                        <a href="{{ url_for('doctor.doctor_update_appointment_status', appointment_id=appt.appointment_id, status='cancelled') }}"
                            class="btn btn-sm btn-danger">Cancel</a>
                     </td>
                 </tr>

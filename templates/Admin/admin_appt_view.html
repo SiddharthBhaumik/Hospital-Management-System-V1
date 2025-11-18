@@ -61,18 +61,6 @@
                 </div>
             </div>
 
-            <!-- Notes -->
-            <div class="mb-3">
-                <label class="form-label fw-bold">Notes</label>
-                <div class="border rounded p-3 bg-light">
-                    {% if treatment.notes %}
-                        {{ treatment.notes }}
-                    {% else %}
-                        <span class="text-muted">No additional notes.</span>
-                    {% endif %}
-                </div>
-            </div>
-
             <!-- Tests -->
             <div class="mb-3">
                 <label class="form-label fw-bold">Tests</label>
@@ -81,6 +69,18 @@
                         {{ treatment.tests }}
                     {% else %}
                         <span class="text-muted">No tests recorded.</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="mb-3">
+                <label class="form-label fw-bold">Notes</label>
+                <div class="border rounded p-3 bg-light">
+                    {% if treatment.notes %}
+                        {{ treatment.notes }}
+                    {% else %}
+                        <span class="text-muted">No additional notes.</span>
                     {% endif %}
                 </div>
             </div>
