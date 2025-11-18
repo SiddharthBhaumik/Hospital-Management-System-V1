@@ -12,17 +12,17 @@
             <h4 class="card-title">{{ patient.name }}</h4>
             <p class="card-text">
                 <strong>Gender:</strong> {{ patient.gender }} <br>
-                <strong>Age:</strong> {{ patient.age }}
+                <strong>Age:</strong> {{ patient_age }}
             </p>
         </div>
     </div>
 
     <!-- Action Buttons -->
     <div class="mb-4">
-        <a href="{{ url_for('doctor.view_patient_history', patient_id=patient.patient_id, filter='me') }}" class="btn btn-primary me-2">
+        <a href="{{ url_for('doctor.doctor_patient_history', patient_id=patient.patient_id, filter='me') }}" class="btn btn-primary me-2">
             Treatments with Me
         </a>
-        <a href="{{ url_for('doctor.view_patient_history', patient_id=patient.patient_id, filter='all') }}" class="btn btn-secondary">
+        <a href="{{ url_for('doctor.doctor_patient_history', patient_id=patient.patient_id, filter='all') }}" class="btn btn-secondary">
             Treatments from All Doctors
         </a>
     </div>

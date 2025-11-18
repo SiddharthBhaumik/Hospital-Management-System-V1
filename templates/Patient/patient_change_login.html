@@ -1,0 +1,72 @@
+{% extends "Patient/base.html" %}
+
+{% block title %}Edit Login Details{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 col-lg-5">
+        <div class="card shadow p-4">
+            <h3 class="card-title text-center mb-4">Edit Login Details</h3>
+
+            <!-- Flash messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, msg in messages %}
+                  <div class="alert alert-{{ category }} alert-sm" role="alert">
+                      {{ msg }}
+                  </div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="{{ url_for('patient.patient_edit_login_details') }}">
+                <!-- Username -->
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text"
+                           id="username"
+                           name="username"
+                           class="form-control"
+                           placeholder="Enter your username"
+                           value="{{ user.username }}"
+                           required
+                           maxlength="50">
+                </div>
+
+                <!-- Email -->
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email"
+                           id="email"
+                           name="email"
+                           class="form-control"
+                           placeholder="you@example.com"
+                           value="{{ user.email }}"
+                           required>
+                </div>
+
+                <!-- Password -->
+                <div class="mb-3">
+                    <label for="password" class="form-label">
+                        New Password <small class="text-muted">(leave blank to keep current)</small>
+                    </label>
+                    <input type="password"
+                           id="password"
+                           name="password"
+                           class="form-control"
+                           placeholder="Enter new password (optional)"
+                           minlength="6"
+                           maxlength="50"
+                           autocomplete="new-password">
+                </div>
+
+                <div class="d-grid mt-3">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <a href="{{ url_for('patient.patient_dashboard') }}" class="btn btn-secondary mt-2">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

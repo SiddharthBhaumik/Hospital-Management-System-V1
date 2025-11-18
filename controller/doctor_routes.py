@@ -2,6 +2,7 @@ from flask import Blueprint,render_template,request,flash,url_for,redirect
 from controller.models import *
 from flask_login import current_user,login_required,logout_user
 from werkzeug.security import generate_password_hash
+from datetime import date
 
 doctor =Blueprint('doctor',__name__ )
   
@@ -169,13 +170,41 @@ def doctor_update_appointment_status(appointment_id,status):
         return redirect(url_for('doctor.doctor_dashboard'))
 
 
-@doctor.route('/view_history/<int:patient_id>')
+@doctor.route('/view_history/<int:patient_id>/<string:filter>')
 @login_required
-def doctor_patient_history(patient_id):
+def doctor_patient_history(patient_id,filter):
     if current_user.role.role != 'Doctor':
+        flash("You are not authorized to view this page.", "danger")
         return redirect(url_for('main.dashboard'))
+
+    # Get patient
+    patient = Patient.query.get(patient_id)
+    if not patient:
+        flash("Patient not found.", "danger")
+        return redirect(url_for('doctor.doctor_dashboard'))
+
+    today = date.today()
+    patient_age= today.year - patient.dob.year - ((today.month, today.day) < (patient.dob.month, patient.dob.day))
+
+    # Get filter from query string
+    
+
+    if filter == 'all':
+        # Treatments from any doctor
+        treatments = Treatment.query.join(Treatment.appointment).filter(
+            Appointment.patient_id == patient.patient_id
+        ).order_by(Appointment.datetime.desc()).all()
+    elif filter == 'me':
+        my_doctor = Doctor.query.filter_by(user_id=current_user.user_id).first()
+        # Treatments only from this doctor
+        treatments = Treatment.query.join(Treatment.appointment).filter(
+        Appointment.patient_id == patient.patient_id,
+        Appointment.doctor_id == my_doctor.doctor_id
+    ).order_by(Appointment.datetime.desc()).all()
     else:
-        patient=Patient.query.get(patient_id)
-        if not patient:
-            flash("Patient not found!", "danger")
-            return redirect(url_for('doctor.doctor_dashboard'))
+        flash("Invalid filter","danger")
+        return redirect(url_for('doctor.doctor_dashboard'))
+
+    return render_template('Doctor/patient_history.html',
+                           patient=patient,
+                           treatments=treatments,patient_age=patient_age)

@@ -1,0 +1,34 @@
+{% extends "Patient/base.html" %}
+
+{% block title %}Treatment History{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+
+  <h2 class="mb-4">Treatment History for {{ patient.name }}</h2>
+
+  {% if treatments %}
+    {% for treatment in treatments %}
+      <div class="card mb-3 shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+          <div>
+            Dr. {{ treatment.appointment.doctor.name }} - {{ treatment.appointment.doctor.department.name }}
+          </div>
+          <div>
+            {{ treatment.appointment.datetime.strftime('%Y-%m-%d %H:%M') }}
+          </div>
+        </div>
+        <div class="card-body">
+          <p><strong>Diagnosis:</strong> {{ treatment.diagnosis }}</p>
+          <p><strong>Prescription:</strong> {{ treatment.prescription }}</p>
+          <p><strong>Tests:</strong> {{ treatment.tests or 'N/A' }}</p>
+          <p><strong>Notes:</strong> {{ treatment.notes or 'N/A' }}</p>
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="alert alert-info">No treatment history available.</div>
+  {% endif %}
+
+</div>
+{% endblock %}

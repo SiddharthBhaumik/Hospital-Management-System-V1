@@ -12,7 +12,7 @@ class User(db.Model,UserMixin):
     blacklisted = db.Column(db.Boolean, default=False, nullable=False)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.role_id'), nullable=False)
 
-    role=db.relationship('Roles',back_populates='users',uselist=False)
+    role=db.relationship('Roles',uselist=False)
 
     def get_id(self):
         return str(self.user_id)
@@ -22,8 +22,6 @@ class Roles(db.Model):
     __tablename__='roles'
     role_id = db.Column(db.Integer, primary_key=True,autoincrement=True)
     role = db.Column(db.Enum('Patient', 'Doctor', 'Admin'),unique=True,nullable=False)
-
-    users = db.relationship('User', back_populates='role',uselist=True)
 
 class Patient(db.Model):
     __tablename__='patient'

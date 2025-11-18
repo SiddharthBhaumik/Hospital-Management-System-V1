@@ -1,6 +1,7 @@
 from controller.routes import main,login_manager
 from controller.admin_routes import admin
 from controller.doctor_routes import doctor
+from controller.patient_routes import patient
 from controller.config import config
 from controller.models import Roles,User,db
 from werkzeug.security import generate_password_hash
@@ -13,6 +14,7 @@ app =Flask(__name__ , template_folder='templates',static_folder='static')
 app.register_blueprint(main)
 app.register_blueprint(admin)
 app.register_blueprint(doctor)
+app.register_blueprint(patient)
 login_manager.init_app(app)
 app.config.from_object(config)
 db.init_app(app)
