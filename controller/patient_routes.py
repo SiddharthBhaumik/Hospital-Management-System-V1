@@ -4,4 +4,4 @@ from flask_login import current_user,login_required,logout_user
 #from werkzeug.security import generate_password_hash
 #from datetime import date
 
-patient =Blueprint('patient',__name__ )
+patient =Blueprint('patient',__name__ ,url_prefix='/patient')

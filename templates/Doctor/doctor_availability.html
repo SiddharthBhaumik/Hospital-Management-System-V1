@@ -1,0 +1,107 @@
+{% extends "Doctor/base.html" %}
+
+{% block title %}Create Time Slots{% endblock %}
+
+{% block content %}
+
+<div class="card shadow-sm">
+    <div class="card-body">
+
+        <h3 class="mb-4">Create Availability Slots (Next 7 Days)</h3>
+
+        <!-- Slot Creation Form -->
+        <form action="{{ url_for('doctor.doctor_availability') }}" method="POST">
+
+            <div class="row mb-3">
+
+                <!-- Date -->
+                <div class="col-md-4">
+                    <label for="date" class="form-label">Select Date</label>
+                    <input type="date"
+                           id="date"
+                           name="date"
+                           class="form-control"
+                           min="{{ today }}"
+                           max="{{ max_date }}"
+                           required>
+                </div>
+
+                <!-- Start Time -->
+                <div class="col-md-4">
+                    <label for="start_time" class="form-label">Start Time</label>
+                    <input type="time"
+                           id="start_time"
+                           name="start_time"
+                           class="form-control"
+                           required>
+                </div>
+
+                <!-- End Time -->
+                <div class="col-md-4">
+                    <label for="end_time" class="form-label">End Time</label>
+                    <input type="time"
+                           id="end_time"
+                           name="end_time"
+                           class="form-control"
+                           required>
+                </div>
+
+            </div>
+
+            <div class="row mb-3">
+
+                <!-- Duration -->
+                <div class="col-md-4">
+                    <label for="duration" class="form-label">Slot Duration</label>
+                    <select id="duration" name="duration" class="form-select" required>
+                        <option value="10">10 minutes</option>
+                        <option value="15">15 minutes</option>
+                        <option value="20">20 minutes</option>
+                        <option value="30">30 minutes</option>
+                        <option value="60">60 minutes</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <button class="btn btn-primary mt-2" type="submit">
+                Create Slots
+            </button>
+        </form>
+
+        <hr class="my-4">
+
+        <!-- Existing Slots -->
+        <h4 class="mb-3">Your Existing Slots</h4>
+
+        {% if slots %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Date</th>
+                        <th>Time Slots</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for date, times in slots.items() %}
+                    <tr>
+                        <td>{{ date }}</td>
+                        <td>
+                            {% for t in times %}
+                                <span class="badge bg-success me-1">{{ t }}</span>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+            <p class="text-muted">No availability slots created yet.</p>
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}

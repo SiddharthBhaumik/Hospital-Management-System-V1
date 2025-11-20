@@ -1,5 +1,5 @@
-from flask import Blueprint,render_template,request,redirect, url_for, flash
-from flask_login import LoginManager,login_user,current_user,login_required
+from flask import Blueprint,render_template,request,redirect, url_for, flash,session
+from flask_login import LoginManager,login_user,current_user,login_required,logout_user
 from controller.models import *
 from werkzeug.security import check_password_hash,generate_password_hash
 from datetime import datetime
@@ -153,7 +153,14 @@ def staff_login():
         else:
             flash("Invalid credentials!" , "danger")
             return render_template('staff_login.html')
-
+        
+@main.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    session.clear() 
+    flash("Logged out successfully.")
+    return redirect(url_for('main.home'))
     
 
 

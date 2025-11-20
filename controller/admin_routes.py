@@ -3,7 +3,7 @@ from werkzeug.security import generate_password_hash
 from controller.models import *
 from flask_login import current_user,login_required
 
-admin =Blueprint('admin',__name__ )
+admin =Blueprint('admin',__name__ ,url_prefix='/admin')
   
 @admin.route('/doctors')
 @login_required

@@ -57,7 +57,7 @@
                         Blacklist
                     {% endif %}
                 </a>
-                <a href="{{ url_for('admin.admin_doctors_delete', doctor_id=doctor.doctor_id) }}" class="btn btn-danger btn-sm">Delete</a>
+                <a href="{{ url_for('admin.admin_doctors_edit', doctor_id=doctor.doctor_id) }}" class="btn btn-danger btn-sm">Delete</a>
             </td>
         </tr>
         {% else %}

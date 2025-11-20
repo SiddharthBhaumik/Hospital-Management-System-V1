@@ -12,7 +12,7 @@ class User(db.Model,UserMixin):
     blacklisted = db.Column(db.Boolean, default=False, nullable=False)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.role_id'), nullable=False)
 
-    role=db.relationship('Roles',uselist=False)
+    role=db.relationship('Roles',uselist=False,lazy='joined')
 
     def get_id(self):
         return str(self.user_id)
@@ -32,7 +32,7 @@ class Patient(db.Model):
     gender=db.Column(db.Enum('Male', 'Female', 'Other'),nullable=False)
     phone_no=db.Column(db.String(15), nullable=False)
 
-    user = db.relationship('User', uselist=False,lazy="joined")
+    user = db.relationship('User', uselist=False)
     appointments = db.relationship('Appointment', back_populates='patient',uselist=True)
 
 class Doctor(db.Model):
@@ -44,7 +44,7 @@ class Doctor(db.Model):
     experience=db.Column(db.Integer, nullable=False)
     about=db.Column(db.Text, nullable=False)
 
-    user = db.relationship('User', uselist=False,lazy="joined")
+    user = db.relationship('User', uselist=False)
     department = db.relationship('Department', back_populates='doctors',uselist=False) 
     availabilities = db.relationship('DoctorAvailability', back_populates='doctor',uselist=True)
     appointments = db.relationship('Appointment', back_populates='doctor',uselist=True)

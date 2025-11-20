@@ -3,8 +3,9 @@ from controller.models import *
 from flask_login import current_user,login_required,logout_user
 from werkzeug.security import generate_password_hash
 from datetime import date
+from sqlalchemy.orm import aliased
 
-doctor =Blueprint('doctor',__name__ )
+doctor =Blueprint('doctor',__name__,url_prefix='/doctor' )
   
 @doctor.route('/dashboard')
 @login_required
@@ -12,7 +13,7 @@ def doctor_dashboard():
     if current_user.role.role != 'Doctor':
         return redirect(url_for('main.dashboard'))
     else:
-        # appointments of blacklisted patients are cancelled
+        #appointments of blacklisted patients are cancelled
         appointments = (
     Appointment.query
         .join(Appointment.doctor)
@@ -23,15 +24,23 @@ def doctor_dashboard():
         )
         .all()
 )
-        patients = Patient.query.filter(
-            Patient.user.has(User.blacklisted == False),
-            Patient.appointments.any(
-                Appointment.status != "Cancelled",
-                Appointment.doctor.has(
-                    Doctor.user.has(User.user_id == current_user.user_id)
-                )
-            )
-        ).all()
+        PatientUser = aliased(User)  # for patient
+        DoctorUser = aliased(User)   # for doctor
+
+        patients = (
+    Patient.query
+    .join(Patient.user.of_type(PatientUser))         # Patient → User
+    .join(Patient.appointments)                     # Appointment
+    .join(Appointment.doctor)                        # Doctor
+    .join(Doctor.user.of_type(DoctorUser))          # Doctor → User
+    .filter(
+        PatientUser.blacklisted == False,           # patient not blacklisted
+        Appointment.status != "Cancelled",          # active appointments
+        DoctorUser.user_id == current_user.user_id  # doctor is current user
+    )
+    .distinct()
+    .all()
+)
 
         return render_template('Doctor/doctor_dashboard.html',appointments=appointments,patients=patients)
 
@@ -42,7 +51,7 @@ def doctor_edit_login_details():
         return redirect(url_for('main.dashboard'))
     else:
         if request.method=='GET':
-            return render_template("Doctor/edit_login_details.html", user=current_user)
+            return render_template("Doctor/doctor_change_login.html", user=current_user)
         elif request.method == "POST":
             new_username = request.form.get("username").strip()
             new_email = request.form.get("email").strip()
@@ -75,7 +84,7 @@ def doctor_edit_login_details():
                 if (new_username != current_user.username) or (new_email != current_user.email) or new_password:
                     flash("Login details updated. Please log in again.", "success")
                     logout_user()
-                    return redirect(url_for("auth.login"))
+                    return redirect(url_for("main.login"))
 
                 flash("Login details updated successfully.", "success")
                 return redirect(url_for("doctor.doctor_dashboard"))
@@ -208,3 +217,12 @@ def doctor_patient_history(patient_id,filter):
     return render_template('Doctor/patient_history.html',
                            patient=patient,
                            treatments=treatments,patient_age=patient_age)
+
+@doctor.route('/availibility')
+@login_required
+def doctor_availability():
+    if current_user.role.role != 'Doctor':
+        flash("You are not authorized to view this page.", "danger")
+        return redirect(url_for('main.dashboard'))
+    
+    return render_template('Doctor/doctor_availability.html')
