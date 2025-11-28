@@ -80,12 +80,27 @@ class Treatment(db.Model):
     appointment = db.relationship('Appointment', uselist=False,lazy="joined")
 
 class DoctorAvailability(db.Model):
-    __tablename__ = 'doctor_availability'
-    avail_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    doctor_id = db.Column(db.Integer, db.ForeignKey('doctor.doctor_id'), nullable=False)
-    available_datetime = db.Column(db.DateTime, nullable=False)
+    __tablename__ = "doctor_availability"
 
-    doctor = db.relationship('Doctor', back_populates='availabilities',uselist=False)
+    id = db.Column(db.Integer, primary_key=True)
+    doctor_id = db.Column(db.Integer,db.ForeignKey("doctor.doctor_id"),nullable=False)
+    slot_id = db.Column(db.Integer,db.ForeignKey("time_slot.slot_id"),nullable=False)
+    booked = db.Column(db.Boolean, default=True)
+
+    doctor = db.relationship("Doctor", back_populates="availabilities")
+    time_slot = db.relationship("TimeSlot", back_populates="doctor_links")
+
+class TimeSlot(db.Model):
+    __tablename__ = "timeslots"
+    slot_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    weekday = db.Column(db.Enum('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'),nullable=False)
+    slot_start = db.Column(db.Time, nullable=False)
+    doctor_links = db.relationship(
+        "DoctorAvailability",
+        back_populates="time_slot",
+        cascade="all, delete-orphan"
+    )
+
 
 
 

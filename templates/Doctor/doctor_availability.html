@@ -1,107 +1,69 @@
-{% extends "Doctor/base.html" %}
-
-{% block title %}Create Time Slots{% endblock %}
+{% extends "doctor_base.html" %}
+{% block title %}Set Availability{% endblock %}
 
 {% block content %}
 
-<div class="card shadow-sm">
-    <div class="card-body">
+<h2 class="mb-4">Set Your Availability for the Next 7 Days</h2>
 
-        <h3 class="mb-4">Create Availability Slots (Next 7 Days)</h3>
+<form method="POST" action="{{ url_for('doctor.doctor_availability') }}">
 
-        <!-- Slot Creation Form -->
-        <form action="{{ url_for('doctor.doctor_availability') }}" method="POST">
-
-            <div class="row mb-3">
-
-                <!-- Date -->
-                <div class="col-md-4">
-                    <label for="date" class="form-label">Select Date</label>
-                    <input type="date"
-                           id="date"
-                           name="date"
-                           class="form-control"
-                           min="{{ today }}"
-                           max="{{ max_date }}"
-                           required>
-                </div>
-
-                <!-- Start Time -->
-                <div class="col-md-4">
-                    <label for="start_time" class="form-label">Start Time</label>
-                    <input type="time"
-                           id="start_time"
-                           name="start_time"
-                           class="form-control"
-                           required>
-                </div>
-
-                <!-- End Time -->
-                <div class="col-md-4">
-                    <label for="end_time" class="form-label">End Time</label>
-                    <input type="time"
-                           id="end_time"
-                           name="end_time"
-                           class="form-control"
-                           required>
-                </div>
-
-            </div>
-
-            <div class="row mb-3">
-
-                <!-- Duration -->
-                <div class="col-md-4">
-                    <label for="duration" class="form-label">Slot Duration</label>
-                    <select id="duration" name="duration" class="form-select" required>
-                        <option value="10">10 minutes</option>
-                        <option value="15">15 minutes</option>
-                        <option value="20">20 minutes</option>
-                        <option value="30">30 minutes</option>
-                        <option value="60">60 minutes</option>
-                    </select>
-                </div>
-
-            </div>
-
-            <button class="btn btn-primary mt-2" type="submit">
-                Create Slots
-            </button>
-        </form>
-
-        <hr class="my-4">
-
-        <!-- Existing Slots -->
-        <h4 class="mb-3">Your Existing Slots</h4>
-
-        {% if slots %}
-        <div class="table-responsive">
-            <table class="table table-bordered table-striped">
-                <thead class="table-primary">
-                    <tr>
-                        <th>Date</th>
-                        <th>Time Slots</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for date, times in slots.items() %}
-                    <tr>
-                        <td>{{ date }}</td>
-                        <td>
-                            {% for t in times %}
-                                <span class="badge bg-success me-1">{{ t }}</span>
-                            {% endfor %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    {% for date, slots in slots_by_date.items() %}
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <strong>{{ date }}</strong>
         </div>
-        {% else %}
-            <p class="text-muted">No availability slots created yet.</p>
-        {% endif %}
 
+        <div class="card-body">
+
+            <div class="row">
+                {% for slot in slots %}
+                {% set availability = doctor_availability_map.get(slot.slot_id) %}
+                {% set is_booked = availability.booked if availability else False %}
+                {% set is_selected = availability is not none %}
+
+                <div class="col-md-3 col-sm-4 col-6 mb-2">
+                    <div class="form-check">
+
+                        <input class="form-check-input"
+                               type="checkbox"
+                               id="slot_{{ slot.slot_id }}"
+                               name="selected_slots"
+                               value="{{ slot.slot_id }}"
+
+                               {% if is_selected %}
+                                   checked
+                               {% endif %}
+
+                               {% if is_booked %}
+                                   disabled
+                               {% endif %}
+                        >
+
+                        <label class="form-check-label" for="slot_{{ slot.slot_id }}">
+                            {{ slot.slot_start.strftime("%I:%M %p") }}
+
+                            {% if is_booked %}
+                                <span class="text-danger ms-1" title="This slot already has appointments">
+                                    🔒
+                                </span>
+                            {% endif %}
+                        </label>
+                    </div>
+                </div>
+
+                {% endfor %}
+            </div>
+
+        </div>
     </div>
-</div>
+    {% endfor %}
+
+    <div class="text-end mt-3">
+        <button type="submit" class="btn btn-success btn-lg">
+            Save Availability
+        </button>
+    </div>
+
+</form>
 
 {% endblock %}
