@@ -11,23 +11,23 @@
 <!-- Navbar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
   <div class="container-fluid">
-    <a class="navbar-brand" href="{{ url_for('patient.dashboard') }}">Hospital Portal</a>
+    <a class="navbar-brand" href="{{ url_for('patient.patient_dashboard') }}">Hospital Portal</a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav ms-auto">
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('patient.edit_profile') }}">Edit Profile</a>
+          <a class="nav-link" href="{{ url_for('patient.patient_edit_profile') }}">Edit Profile</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('patient.edit_login') }}">Edit Login Details</a>
+          <a class="nav-link" href="{{ url_for('patient.patient_edit_login_details') }}">Edit Login Details</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('patient.history') }}">History</a>
+          <a class="nav-link" href="{{ url_for('patient.patient_history') }}">History</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
+          <a class="nav-link" href="{{ url_for('main.logout') }}">Logout</a>
         </li>
       </ul>
     </div>
@@ -49,6 +49,5 @@
   {% block content %}{% endblock %}
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

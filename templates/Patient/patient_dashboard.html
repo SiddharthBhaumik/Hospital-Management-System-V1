@@ -11,7 +11,7 @@
       <div class="card-body">
         <h5 class="card-title">{{ dept.name }}</h5>
         <p class="card-text">{{ dept.description }}</p>
-        <a href="{{ url_for('patient.view_department', dept_id=dept.id) }}" class="btn btn-primary">View More</a>
+        <a href="{{ url_for('patient.patient_view_department', dept_id=dept.id) }}" class="btn btn-primary">View More</a>
       </div>
     </div>
   </div>
@@ -36,7 +36,7 @@
         <td>{{ appt.specialization }}</td>
         <td>{{ appt.date_time.strftime('%Y-%m-%d %H:%M') }}</td>
         <td>
-          <form method="POST" action="{{ url_for('patient.cancel_appointment', appt_id=appt.id) }}">
+          <form method="POST" action="{{ url_for('patient.patient_cancel_appointment', appt_id=appt.id) }}">
             <button type="submit" class="btn btn-sm btn-danger">Cancel</button>
           </form>
         </td>

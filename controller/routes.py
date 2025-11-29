@@ -99,7 +99,7 @@ def register():
 @login_required
 def dashboard():
     if current_user.role.role == 'Patient':
-        return render_template('Patient/patient_dashboard.html')
+        return redirect(url_for('Patient/patient_dashboard.html'))
     elif current_user.role.role == 'Doctor':
         return redirect(url_for('doctor.doctor_dashboard'))
     elif current_user.role.role == 'Admin':

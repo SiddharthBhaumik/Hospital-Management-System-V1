@@ -63,14 +63,6 @@
                                 Blacklist
                             {% endif %}
                         </a>
-
-                        <!-- Delete Link -->
-                        <a href="{{ url_for('admin.admin_delete_patient', patient_id=patient.patient_id) }}"
-                           class="btn btn-danger btn-sm mx-1"
-                           onclick="return confirm('Delete this patient? This cannot be undone.');">
-                            Delete
-                        </a>
-
                     </td>
                 </tr>
 

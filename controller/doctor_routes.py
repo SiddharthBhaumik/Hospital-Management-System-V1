@@ -86,7 +86,6 @@ def doctor_edit_login_details():
                     logout_user()
                     return redirect(url_for("main.login"))
 
-                flash("Login details updated successfully.", "success")
                 return redirect(url_for("doctor.doctor_dashboard"))
 
             except Exception:
