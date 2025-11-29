@@ -84,6 +84,7 @@ class DoctorAvailability(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     doctor_id = db.Column(db.Integer,db.ForeignKey("doctor.doctor_id"),nullable=False)
+    date = db.Column(db.Date, nullable=False) 
     slot_id = db.Column(db.Integer,db.ForeignKey("time_slot.slot_id"),nullable=False)
     booked = db.Column(db.Boolean, default=True)
 
@@ -93,7 +94,6 @@ class DoctorAvailability(db.Model):
 class TimeSlot(db.Model):
     __tablename__ = "timeslots"
     slot_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    weekday = db.Column(db.Enum('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'),nullable=False)
     slot_start = db.Column(db.Time, nullable=False)
     doctor_links = db.relationship(
         "DoctorAvailability",
