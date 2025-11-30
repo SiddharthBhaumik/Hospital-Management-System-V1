@@ -2,7 +2,10 @@ from flask import Blueprint,render_template,request,flash,url_for,redirect
 from controller.models import *
 from flask_login import current_user,login_required,logout_user
 from werkzeug.security import generate_password_hash
-from datetime import datetime
+from validate_email import validate_email, EmailNotValidError
+from datetime import datetime,date
+import phonenumbers
+import string
 
 patient =Blueprint('patient',__name__ ,url_prefix='/patient')
 
@@ -13,10 +16,8 @@ def patient_dashboard():
         return redirect(url_for('main.dashboard'))
     else:
         departments=Department.query.all()
-        appointments = Appointment.query.join(Appointment.patient).filter( 
-    Patient.user_id == current_user.user_id,
-    Appointment.status == 'booked'
-).all()
+        appointments = Appointment.query.join(Appointment.patient
+                                              ).filter( Patient.user_id == current_user.user_id,Appointment.status == 'booked').all()
 
         return render_template('Patient/patient_dashboard.html',appointments=appointments,departments=departments)
     
@@ -29,49 +30,57 @@ def patient_edit_login_details():
         if request.method == 'GET':
             return render_template("Patient/patient_change_login.html", user=current_user)
         if request.method == 'POST':
-            username = request.form.get('username').strip()
-            email = request.form.get('email').strip()
-            password = request.form.get('password').strip()
+            old_username = current_user.username
+            old_email = current_user.email
 
-            # --- Check if username exists (but not for this user)
-            existing_username = User.query.filter(
-                User.username == username,
-                User.user_id != current_user.user_id
-            ).first()
+            username = request.form.get("username", "").strip()
+            email = request.form.get("email", "").strip()
+            password = request.form.get("password", "")
 
-            if existing_username:
-                flash("Username is already taken.", "danger")
-                return redirect(url_for('patient.patient_edit_login_details'))
+            if not username or not email:
+                flash("Username and email are required.", "danger")
+                return render_template("Patient/patient_change_login.html", user=current_user)
 
-            # --- Check if email exists (but not for this user)
-            existing_email = User.query.filter(
-                User.email == email,
-                User.user_id != current_user.user_id
-            ).first()
+            if len(username) < 6 or len(username) > 20:
+                flash("Username must be 6-20 characters long.", "danger")
+                return render_template("Patient/patient_change_login.html", user=current_user)
 
-            if existing_email:
-                flash("Email is already registered.", "danger")
-                return redirect(url_for('patient.patient_edit_login_details'))
+            if not username.isalnum():
+                flash("Username can only contain letters and numbers.", "danger")
+                return render_template("Patient/patient_change_login.html", user=current_user)
 
-            # --- Update fields
+            try:
+                valid = validate_email(email)
+                email = valid.email
+            except EmailNotValidError:
+                flash("Invalid email", "danger")
+                return render_template("Patient/patient_change_login.html", user=current_user)
+
+            if User.query.filter(User.username == username, User.user_id != current_user.user_id).first():
+                flash("Username already taken. Please choose another.", "danger")
+                return render_template("Patient/patient_change_login.html", user=current_user)
+
+            if User.query.filter(User.email == email, User.user_id != current_user.user_id).first():
+                flash("Email already in use. Please choose another.", "danger")
+                return render_template("Patient/patient_change_login.html", user=current_user)
+            
+            if password:
+                if len(password) < 8:
+                    flash("Password must be at least 8 characters long.", "danger")
+                    return render_template("Patient/patient_change_login.html", user=current_user)
+                if not all(char.isalnum() or char in string.punctuation for char in password):
+                    flash("Password can only contain letters, numbers, or special characters.", "danger")
+                    return render_template("Patient/patient_change_login.html", user=current_user)
+
             current_user.username = username
             current_user.email = email
-
-            # Update password only if given
             if password:
                 current_user.password = generate_password_hash(password)
-                flash("Password updated successfully.", "success")
             try:
                 db.session.commit()
-
-                # If login credentials changed significantly, force re-login
-                if (username != current_user.username) or (email != current_user.email) or password:
-                    flash("Login details updated. Please log in again.", "success")
-                    logout_user()
-                    return redirect(url_for("main.login"))
-
+                if password or username != old_username or email != old_email:
+                    return redirect(url_for("main.logout"))
                 return redirect(url_for("patient.patient_dashboard"))
-
             except Exception:
                 db.session.rollback()
                 flash("An error occurred while saving changes.", "danger")
@@ -83,27 +92,42 @@ def patient_edit_profile():
     if current_user.role.role != 'Patient':
         return redirect(url_for('main.dashboard'))
     else:
-    # Load the patient linked to this user
         patient = Patient.query.filter_by(user_id=current_user.user_id).first()
         if request.method == 'GET':
-             return render_template(
-            "Patient/edit_profile.html",
-            patient=patient
-        )
+            return render_template("Patient/edit_profile.html",patient=patient)
         if request.method == 'POST':
-            name = request.form.get('name').strip()
-            gender = request.form.get('gender')
-            dob_str = request.form.get('dob')
-            phone_no = request.form.get('phone_no').strip()
+            name = request.form.get("name", "").strip()
+            gender = request.form.get("gender", "")
+            dob_str = request.form.get("dob", "")
+            phone_no = request.form.get("phone_no", "").strip()
 
-            # --- Validate date ---
+            if not all([name, gender, phone_no, dob_str]):
+                flash("All required fields must be filled!", "danger")
+                return render_template("Patient/edit_profile.html",patient=patient)
+            
+            if not all(char.isalpha() or char.isspace() for char in name) or len(name) > 50:
+                flash("Name can only contain letters and spaces and must not exceed 50 characters.", "danger")
+                return render_template("Patient/edit_profile.html",patient=patient)
+
+            if gender not in ['Male', 'Female', 'Other']:
+                flash("Invalid gender selected.", "danger")
+                return render_template("Patient/edit_profile.html",patient=patient)
+    
             try:
-                dob = datetime.strptime(dob_str, '%Y-%m-%d').date()
-            except ValueError:
-                flash("Invalid date format.", "danger")
-                return redirect(url_for('patient.patient_edit_profile'))
+                parsed_number = phonenumbers.parse(phone_no, None)
+                if not phonenumbers.is_valid_number(parsed_number):
+                    raise ValueError("Invalid phone number")
+            except Exception:
+                flash("Invalid phone number.", "danger")
+                return render_template("Patient/edit_profile.html",patient=patient)
 
-            # --- Update fields ---
+            try:
+                dob = datetime.strptime(dob_str, "%Y-%m-%d").date()
+                if dob > date.today():
+                    raise ValueError("DOB cannot be in the future")
+            except Exception:
+                flash("Invalid date of birth.", "danger")
+                return render_template("Patient/edit_profile.html",patient=patient)
             patient.name = name
             patient.gender = gender
             patient.dob = dob
@@ -113,7 +137,6 @@ def patient_edit_profile():
                 db.session.commit()
                 flash("Profile updated successfully.", "success")
                 return redirect(url_for('patient.patient_dashboard'))
-
             except Exception:
                 db.session.rollback()
                 flash("An error occurred while saving changes.", "danger")
@@ -125,21 +148,14 @@ def patient_view_department(dept_id):
     if current_user.role.role != 'Patient':
         return redirect(url_for('main.dashboard'))
     else:
-        # Get the requested department
         department = Department.query.get(dept_id)
         if not department:
             flash("Department not found.", "danger")
             return redirect(url_for("patient.patient_dashboard"))
         doctors = Doctor.query.join(Doctor.user).filter(
-        Doctor.department_id == department.department_id,
-        User.blacklisted == False
-        ).all()
+            Doctor.department_id == department.department_id,User.blacklisted == False).all()
 
-        return render_template(
-            "Patient/patient_deptdoc.html",
-            department=department,
-            doctors=doctors
-        )
+        return render_template("Patient/patient_deptdoc.html",department=department,doctors=doctors)
 
 @patient.route('/cancel-appointment/<int:appt_id>', methods=['POST'])
 @login_required
@@ -147,7 +163,6 @@ def patient_cancel_appointment(appt_id):
     if current_user.role.role != 'Patient':
         return redirect(url_for('main.dashboard'))
     else:
-        # Get the appointment
         appointment = Appointment.query.get(appt_id)
         if not appointment:
             flash("Appointment not found.", "danger")
@@ -160,7 +175,6 @@ def patient_cancel_appointment(appt_id):
             flash("Appointment not found for patient!", "danger")
             return redirect(url_for('patient.patient_dashboard'))
 
-        # Only cancel if not already completed/cancelled
         if appointment.status == 'completed':
             flash("Cannot cancel a completed appointment.", "warning")
             return redirect(url_for('patient.patient_dashboard'))
@@ -181,22 +195,13 @@ def patient_history():
     if current_user.role.role != 'Patient':
         return redirect(url_for('main.dashboard'))
     else:
-        # Get the patient linked to the logged-in user
         patient = Patient.query.filter_by(user_id=current_user.user_id).first()
 
-        # Load treatments with related appointment, doctor, department
-        treatments = Treatment.query.join(Treatment.appointment)\
-            .join(Appointment.doctor)\
-            .join(Doctor.department)\
-            .filter(Appointment.patient_id == patient.patient_id)\
-            .order_by(Appointment.datetime.desc())\
-            .all()
+        treatments = Treatment.query.join(Treatment.appointment).join(
+            Appointment.doctor).join(Doctor.department).filter(Appointment.patient_id == patient.patient_id).order_by(
+                Appointment.datetime.desc()).all()
 
-        return render_template(
-            "Patient/patient_history.html",
-            patient=patient,
-            treatments=treatments
-        )
+        return render_template("Patient/patient_history.html",patient=patient,treatments=treatments)
     
 @patient.route("/book/<int:doctor_id>", methods=["GET", "POST"])
 @login_required
@@ -206,7 +211,7 @@ def patient_book_appointment(doctor_id):
         return redirect(url_for("main.dashboard"))
     
     patient = Patient.query.filter_by(user_id=current_user.user_id).first()
-    doctor = Doctor.query.join(Doctor.user).filter(User.blacklisted==False,Doctor.doctor_id==doctor_id)
+    doctor = Doctor.query.join(Doctor.user).filter(User.blacklisted==False,Doctor.doctor_id==doctor_id).first()
     if not doctor:
         flash("Doctor not found!", "danger")
         return redirect(url_for('patient.patient_dashboard'))
@@ -217,7 +222,7 @@ def patient_book_appointment(doctor_id):
             DoctorAvailability.query
             .filter_by(doctor_id=doctor_id, booked=False)
             .join(TimeSlot)
-            .filter((DoctorAvailability.date > now.date()) | (DoctorAvailability.date == now.date()) & (TimeSlot.slot_start > now.time()))
+            .filter((DoctorAvailability.date > now.date()) | ((DoctorAvailability.date == now.date()) & (TimeSlot.slot_start > now.time())))
             .order_by(DoctorAvailability.date, TimeSlot.slot_start).all())
 
         return render_template(
@@ -277,7 +282,7 @@ def patient_book_appointment(doctor_id):
         except Exception:
             db.session.rollback()
             flash("An error occurred while booking appointment.", "danger")
-            return redirect(request.url)
+            return redirect(url_for('patient.patient_book_appointment'))
 
 
 

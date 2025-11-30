@@ -73,7 +73,6 @@
         </div>
     </form>
 
-    <!-- Appointment List -->
     <div class="table-responsive">
         <table class="table table-bordered table-hover align-middle">
             <thead class="table-dark">
@@ -95,7 +94,6 @@
                         <td>{{ appt.doctor.department.name }}</td>
                         <td>{{ appt.datetime.strftime('%d %b %Y, %I:%M %p') }}</td>
 
-                        <!-- Status column also contains "View Details" only if completed -->
                         <td class="text-capitalize">
                             {{ appt.status }}
                             

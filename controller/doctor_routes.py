@@ -31,7 +31,7 @@ def doctor_dashboard():
 
         return render_template('Doctor/doctor_dashboard.html',appointments=appointments,patients=patients)
 
-@doctor.route('/change_login', methods=['GET', 'POST'])
+@doctor.route('/edit-login-details', methods=['GET', 'POST'])
 @login_required
 def doctor_edit_login_details():
     if current_user.role.role != 'Doctor':
@@ -206,9 +206,9 @@ def doctor_patient_history(patient_id,filter):
         treatments = Treatment.query.join(Treatment.appointment).filter(
             Appointment.patient_id == patient.patient_id).order_by(Appointment.datetime.desc()).all()
     elif filter == 'me':
-        my_doctor = Doctor.query.filter_by(user_id=current_user.user_id).first()
+        doctor_id = db.session.query(Doctor.doctor_id).filter_by(user_id=current_user.user_id).scalar()
         treatments = Treatment.query.join(Treatment.appointment).filter(
-            Appointment.patient_id == patient.patient_id,Appointment.doctor_id == my_doctor.doctor_id).order_by(
+            Appointment.patient_id == patient.patient_id,Appointment.doctor_id ==doctor_id).order_by(
                 Appointment.datetime.desc()).all()
     else:
         flash("Invalid filter","danger")
@@ -216,25 +216,25 @@ def doctor_patient_history(patient_id,filter):
 
     return render_template('Doctor/patient_history.html',patient=patient,treatments=treatments,patient_age=patient_age)
 
-@doctor.route('/availability',methods=['GET','POST'])
+@doctor.route('/availability', methods=['GET', 'POST'])
 @login_required
 def doctor_availability():
     if current_user.role.role != 'Doctor':
         flash("You are not authorized to view this page.", "danger")
         return redirect(url_for('main.dashboard'))
-    
-    doctor = Doctor.query.get(current_user.user_id)
-    now = datetime.now()
-    
+
+    doctor = Doctor.query.filter_by(user_id=current_user.user_id).first()
+
     from datetime import datetime, timedelta
-    if request.method=='GET':
-        # Build slot list for next 7 days
+    now = datetime.now()
+
+    if request.method == 'GET':
         slots_by_date = {}
         doctor_availability_map = {}
         past_map = {}
 
         for i in range(7):
-            day = datetime.today().date() + timedelta(days=i)
+            day = date.today() + timedelta(days=i)
 
             slots = TimeSlot.query.order_by(TimeSlot.slot_start).all()
             slots_by_date[day] = slots
@@ -245,41 +245,85 @@ def doctor_availability():
 
         for a in doctor.availabilities:
             doctor_availability_map[(a.date, a.slot_id)] = a
-            return render_template("Doctor/doctor_availability.html",slots_by_date=slots_by_date,
-        doctor_availability_map=doctor_availability_map,past_map=past_map)
 
-    if request.method=='POST':
+        return render_template(
+            "Doctor/doctor_availability.html",
+            slots_by_date=slots_by_date,
+            doctor_availability_map=doctor_availability_map,
+            past_map=past_map
+        )
+
+    if request.method == 'POST':
+
         raw_selected = request.form.getlist("selected_slots")
         selected = set()
 
+        valid_dates = {date.today() + timedelta(days=i) for i in range(7)}
+        valid_slot_ids = {s.slot_id for s in TimeSlot.query.all()}
+
         for item in raw_selected:
-            date_str, slot_id = item.split("|")
-            selected.add((date.fromisoformat(date_str), int(slot_id)))
+            if "|" not in item:
+                flash("Invalid slot format.", "danger")
+                return redirect(url_for("doctor.doctor_availability"))
+
+            date_str, slot_id_str = item.split("|")
+
+            try:
+                date_val = date.fromisoformat(date_str)
+            except ValueError:
+                flash("Invalid date received.", "danger")
+                return redirect(url_for("doctor.doctor_availability"))
+
+            if date_val not in valid_dates:
+                flash("Selected date is outside allowed range.", "danger")
+                return redirect(url_for("doctor.doctor_availability"))
+            
+            try:
+                slot_id = int(slot_id_str)
+            except ValueError:
+                flash("Invalid slot ID format.", "danger")
+                return redirect(url_for("doctor.doctor_availability"))
+
+            if slot_id not in valid_slot_ids:
+                flash("Selected slot is invalid.", "danger")
+                return redirect(url_for("doctor.doctor_availability"))
+
+            slot_time = TimeSlot.query.get(slot_id).slot_start
+            slot_datetime = datetime.combine(date_val, slot_time)
+
+            if slot_datetime < now:
+                flash("Cannot select slots in the past.", "danger")
+                return redirect(url_for("doctor.doctor_availability"))
+
+            selected.add((date_val, slot_id))
 
         existing = {(a.date, a.slot_id): a for a in doctor.availabilities}
+
         preserved = {
             (a.date, a.slot_id)
             for a in doctor.availabilities
             if a.booked
         }
-        final = selected.union(preserved)
+
         for key, availability in existing.items():
-            if key not in preserved:
+            if key not in preserved and key not in selected:
                 db.session.delete(availability)
 
-
-        for date_val, slot_id in final:
+        for date_val, slot_id in selected:
             if (date_val, slot_id) not in existing:
-                db.session.add(DoctorAvailability(
-                    doctor_id=doctor.doctor_id,
-                    date=date_val,
-                    slot_id=slot_id,
-                    booked=False
-                ))
+                db.session.add(
+                    DoctorAvailability(
+                        doctor_id=doctor.doctor_id,
+                        date=date_val,
+                        slot_id=slot_id,
+                        booked=False
+                    )
+                )
         try:
             db.session.commit()
-            flash(f"Availabilities have been saved.", "success")
+            flash("Availabilities have been saved.", "success")
         except Exception:
             db.session.rollback()
-            flash("An error occurred while updating the availabilities.", "danger")
+            flash("An error occurred while updating availabilities.", "danger")
+
         return redirect(url_for("doctor.doctor_dashboard"))

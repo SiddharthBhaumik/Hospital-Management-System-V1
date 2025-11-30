@@ -12,22 +12,7 @@
                 </div>
 
                 <div class="card-body">
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                      {% if messages %}
-                        {% for category, msg in messages %}
-                          <div class="alert alert-{{ category }} alert-sm" role="alert">
-                              {{ msg }}
-                          </div>
-                        {% endfor %}
-                      {% endif %}
-                    {% endwith %}
-
                     <form method="POST" action="{{ url_for('doctor.doctor_edit_login_details') }}">
-                        <!-- include CSRF token if you use WTForms/Flask-WTF -->
-                        {% if csrf_token %}
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                        {% endif %}
-
                         <div class="mb-3">
                             <label for="username" class="form-label">Username</label>
                             <input

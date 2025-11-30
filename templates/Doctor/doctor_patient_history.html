@@ -6,7 +6,6 @@
 <div class="container mt-4">
     <h2>Patient History</h2>
 
-    <!-- Patient Info -->
     <div class="card mb-4 shadow-sm">
         <div class="card-body">
             <h4 class="card-title">{{ patient.name }}</h4>
@@ -17,7 +16,6 @@
         </div>
     </div>
 
-    <!-- Action Buttons -->
     <div class="mb-4">
         <a href="{{ url_for('doctor.doctor_patient_history', patient_id=patient.patient_id, filter='me') }}" class="btn btn-primary me-2">
             Treatments with Me
@@ -27,7 +25,6 @@
         </a>
     </div>
 
-    <!-- Treatment List -->
     {% if treatments %}
         <div class="accordion" id="treatmentAccordion">
             {% for treatment in treatments %}
