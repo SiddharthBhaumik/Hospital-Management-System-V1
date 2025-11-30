@@ -210,9 +210,9 @@ def patient_book_appointment(doctor_id):
     if not doctor:
         flash("Doctor not found!", "danger")
         return redirect(url_for('patient.patient_dashboard'))
-
+    
+    now = datetime.now()
     if request.method == "GET":
-        now = datetime.now()
         availabilities = (
             DoctorAvailability.query
             .filter_by(doctor_id=doctor_id, booked=False)
