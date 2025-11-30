@@ -12,48 +12,40 @@
   {% if availabilities %}
     <form method="POST" action="{{ url_for('patient.patient_book_appointment', doctor_id=doctor.doctor_id) }}">
 
-      <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+      {% set slots_by_date = {} %}
+      {% for slot in availabilities %}
+        {% if not slot.booked %}
+          {% set _ = slots_by_date.setdefault(slot.date, []).append(slot) %}
+        {% endif %}
+      {% endfor %}
 
-        {% for slot in availabilities %}
-          {% if not slot.booked %}
+      {% for date, slots in slots_by_date.items() %}
+        <div class="mb-4">
+          <h5 class="text-primary">{{ date.strftime('%A, %d %B %Y') }}</h5>
+          <div class="d-flex flex-wrap gap-3">
 
-          <div class="col">
-            <div class="card h-100 shadow-sm">
-
-              <div class="card-body text-center">
-
-                <!-- Date -->
-                <h6 class="card-title">
-                  {{ slot.date.strftime('%A, %d %B %Y') }}
-                </h6>
-
-                <!-- Time -->
-                <p class="card-text">
-                  {{ slot.time_slot.slot_start.strftime('%I:%M %p') }}
-                </p>
-
-                <!-- Select Slot -->
-                <div class="form-check d-flex justify-content-center">
-                  <input class="form-check-input"
-                         type="radio"
-                         name="availability_id"
-                         id="slot{{ slot.id }}"
-                         value="{{ slot.id }}"
-                         required>
-
-                  <label class="form-check-label ms-2" for="slot{{ slot.id }}">
-                    Select
-                  </label>
+            {% for slot in slots %}
+              <div class="card text-center shadow-sm" style="width: 120px;">
+                <div class="card-body p-2">
+                  <p class="mb-1">{{ slot.time_slot.slot_start.strftime('%I:%M %p') }}</p>
+                  <div class="form-check">
+                    <input class="form-check-input"
+                           type="radio"
+                           name="availability_id"
+                           id="slot{{ slot.id }}"
+                           value="{{ slot.id }}"
+                           required>
+                    <label class="form-check-label" for="slot{{ slot.id }}">
+                      Select
+                    </label>
+                  </div>
                 </div>
-
               </div>
-            </div>
+            {% endfor %}
+
           </div>
-
-          {% endif %}
-        {% endfor %}
-
-      </div>
+        </div>
+      {% endfor %}
 
       <div class="mt-4">
         <button type="submit" class="btn btn-success">Book Appointment</button>
@@ -61,7 +53,6 @@
       </div>
 
     </form>
-
   {% else %}
     <div class="alert alert-info mt-4">
       No available slots for this doctor in the next few days.

@@ -11,7 +11,7 @@
       <div class="card-body">
         <h5 class="card-title">{{ dept.name }}</h5>
         <p class="card-text">{{ dept.description }}</p>
-        <a href="{{ url_for('patient.patient_view_department', dept_id=dept.id) }}" class="btn btn-primary">View More</a>
+        <a href="{{ url_for('patient.patient_view_department', dept_id=dept.department_id) }}" class="btn btn-primary">View More</a>
       </div>
     </div>
   </div>
@@ -23,20 +23,20 @@
   <table class="table table-striped align-middle">
     <thead class="table-dark">
       <tr>
-        <th>Doctor</th>
-        <th>Specialization</th>
-        <th>Date & Time</th>
-        <th>Action</th>
+        <th class="w-30 text-center">Doctor</th>
+        <th class="w-30 text-center">Specialization</th>
+        <th class="w-30 text-center">Date & Time</th>
+        <th class="w-10 text-center">Action</th>
       </tr>
     </thead>
     <tbody>
       {% for appt in appointments %}
       <tr>
-        <td>{{ appt.doctor_name }}</td>
-        <td>{{ appt.specialization }}</td>
-        <td>{{ appt.date_time.strftime('%Y-%m-%d %H:%M') }}</td>
-        <td>
-          <form method="POST" action="{{ url_for('patient.patient_cancel_appointment', appt_id=appt.id) }}">
+        <td class=" text-center">Dr. {{ appt.doctor.name }}</td>
+        <td class=" text-center">{{ appt.doctor.department.name }}</td>
+        <td class=" text-center">{{ appt.datetime.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td class=" text-center">
+          <form method="POST" action="{{ url_for('patient.patient_cancel_appointment', appt_id=appt.appointment_id) }}">
             <button type="submit" class="btn btn-sm btn-danger">Cancel</button>
           </form>
         </td>

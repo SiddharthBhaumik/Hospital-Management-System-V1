@@ -36,7 +36,7 @@
                     <td>{{ appt.datetime.strftime('%d-%m-%Y %I:%M %p') }}</td>
 
                     <td>
-                        <a href="{{ url_for('doctor.doctor_patient_history', patient_id=appt.patient_id) }}"
+                        <a href="{{ url_for('doctor.doctor_patient_history', patient_id=appt.patient_id,filter='me') }}"
                            class="btn btn-sm btn-info">
                            View History
                         </a>
@@ -87,7 +87,7 @@
                 <tr>
                     <td>{{ patient.name }}</td>
                     <td>
-                        <a href="{{ url_for('doctor.patient_history', patient_id=patient.patient_id) }}"
+                        <a href="{{ url_for('doctor.doctor_patient_history', patient_id=patient.patient_id,filter='all') }}"
                            class="btn btn-sm btn-info">View History</a>
                     </td>
                 </tr>

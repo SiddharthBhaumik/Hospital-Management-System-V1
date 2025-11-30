@@ -153,7 +153,7 @@ def doctor_treatment(appointment_id):
 
             return redirect(url_for('doctor.doctor_dashboard'))
 
-@doctor.route('/update_appointment/<int:appointment_id>/<string:status>')
+@doctor.route('/update-appointment/<int:appointment_id>/<string:status>')
 @login_required
 def doctor_update_appointment_status(appointment_id,status):
     if current_user.role.role != 'Doctor':
@@ -170,7 +170,15 @@ def doctor_update_appointment_status(appointment_id,status):
             return redirect(url_for('doctor.doctor_dashboard'))
 
         if status in ["completed", "cancelled"]:
-            appt.status = status
+            if status == "completed":
+                treatment = Treatment.query.filter_by(appointment_id=appt.appointment_id).first()
+                if not treatment:
+                    flash("Cannot mark appointment as completed because no treatment has been added.", "danger")
+                    return redirect(url_for('doctor.doctor_dashboard'))
+
+                appt.status = "completed"
+            else:  
+                appt.status = "cancelled"
         else:
             flash("Invalid Status.", "danger")
             return redirect(url_for('doctor.doctor_dashboard'))
@@ -183,7 +191,7 @@ def doctor_update_appointment_status(appointment_id,status):
 
         return redirect(url_for('doctor.doctor_dashboard'))
 
-@doctor.route('/view_history/<int:patient_id>/<string:filter>')
+@doctor.route('/view-history/<int:patient_id>/<string:filter>')
 @login_required
 def doctor_patient_history(patient_id,filter):
     if current_user.role.role != 'Doctor':
@@ -214,7 +222,7 @@ def doctor_patient_history(patient_id,filter):
         flash("Invalid filter","danger")
         return redirect(url_for('doctor.doctor_dashboard'))
 
-    return render_template('Doctor/patient_history.html',patient=patient,treatments=treatments,patient_age=patient_age)
+    return render_template('Doctor/doctor_patient_history.html',patient=patient,treatments=treatments,patient_age=patient_age)
 
 @doctor.route('/availability', methods=['GET', 'POST'])
 @login_required

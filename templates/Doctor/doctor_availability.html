@@ -23,6 +23,10 @@
                 {% set is_booked = availability.booked if availability else False %}
                 {% set is_selected = availability is not none %}
 
+                {% set start_time = slot.slot_start %}
+                {% set end_hour = (start_time.hour + 1) % 24 %}
+                {% set end_time = start_time.replace(hour=end_hour) %}
+
                 <div class="col-md-3 col-sm-4 col-6 mb-3">
                     <div class="form-check">
 
@@ -36,7 +40,7 @@
                         >
 
                         <label class="form-check-label" for="slot_{{ day }}_{{ slot.slot_id }}">
-                            {{ slot.slot_start.strftime("%I:%M %p") }}
+                            {{ start_time.strftime("%I:%M %p") }}-{{ end_time.strftime("%I:%M %p") }}
 
                             {% if is_booked %}
                                 <span class="text-danger">🔒</span>

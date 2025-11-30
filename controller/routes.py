@@ -185,11 +185,11 @@ def register():
 @login_required
 def dashboard():
     if current_user.role.role == 'Patient':
-        return redirect(url_for('Patient.patient_dashboard.html'))
+        return redirect(url_for('patient.patient_dashboard'))
     elif current_user.role.role == 'Doctor':
         return redirect(url_for('doctor.doctor_dashboard'))
     elif current_user.role.role == 'Admin':
-        return redirect(url_for('Admin.admin_dashboard'))
+        return redirect(url_for('admin.admin_dashboard'))
 
 @main.route('/patient-login', methods=['GET', 'POST'])
 def patient_login():

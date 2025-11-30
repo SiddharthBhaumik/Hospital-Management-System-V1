@@ -4,26 +4,24 @@
     <meta charset="UTF-8">
     <title>{% block title %}Doctor Dashboard{% endblock %}</title>
 
-    <link rel="stylesheet"href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
 </head>
 
 <body class="bg-light">
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container-fluid">
-        
         <a class="navbar-brand" href="{{ url_for('doctor.doctor_dashboard') }}">
             Doctor Dashboard
         </a>
 
-        <div class="d-flex">
-
-            <a href="{{ url_for('doctor.doctor_edit_login_details') }}"
-               class="btn btn-light btn-sm me-2">
+        <div class="d-flex gap-3">
+            <a href="{{ url_for('doctor.doctor_edit_login_details') }}" class="text-white text-decoration-none">
                Edit Login Details
             </a>
 
-            <a href="{{ url_for('main.logout') }}" class="btn btn-light btn-sm">
+            <a href="{{ url_for('main.logout') }}" class="text-white text-decoration-none">
                 Logout
             </a>
         </div>
@@ -31,29 +29,28 @@
 </nav>
 
 <div class="container mt-3">
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-          {{ message }}
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</div>
 
-</div>
 <div class="container mt-4">
-    {% block content %}
-    {% endblock %}
+    {% block content %}{% endblock %}
 </div>
+
 <footer class="bg-primary text-white py-3 mt-4">
-  <div class="container text-center">
-    <small>
-      &copy; {{ current_year if current_year else "2025" }} MedPulse —
-      All Rights Reserved
-    </small>
-  </div>
+    <div class="container text-center">
+        <small>
+            &copy; {{ current_year if current_year else "2025" }} MedPulse — All Rights Reserved
+        </small>
+    </div>
 </footer>
 
 </body>

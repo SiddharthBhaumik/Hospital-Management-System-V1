@@ -31,7 +31,7 @@
             <div class="accordion-item">
                 <h2 class="accordion-header" id="heading{{ treatment.treatment_id }}">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ treatment.treatment_id }}" aria-expanded="false" aria-controls="collapse{{ treatment.treatment_id }}">
-                        {{ treatment.datetime.strftime('%d %b %Y, %I:%M %p') }} - Doctor: {{ treatment.appointment.doctor.name }}
+                        {{ treatment.appointment.datetime.strftime('%d %b %Y, %I:%M %p') }} - Doctor: {{ treatment.appointment.doctor.name }}
                     </button>
                 </h2>
                 <div id="collapse{{ treatment.treatment_id }}" class="accordion-collapse collapse" aria-labelledby="heading{{ treatment.treatment_id }}" data-bs-parent="#treatmentAccordion">

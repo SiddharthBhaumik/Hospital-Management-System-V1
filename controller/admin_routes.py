@@ -15,30 +15,37 @@ admin =Blueprint('admin',__name__ ,url_prefix='/admin')
 def admin_dashboard():
     total_departments = Department.query.count()
     
-    active_doctors = db.session.query(Doctor).join(User).filter(
+    active_doctors = db.session.query(Doctor).join(
+        Doctor.user
+    ).filter(
         User.blacklisted == False
     ).count()
     
-    active_patients = db.session.query(Patient).join(User).filter(
+    active_patients = db.session.query(Patient).join(
+        Patient.user
+    ).filter(
         User.blacklisted == False
     ).count()
+
+    departments = Department.query.all()
+    dept_labels = []
+    doctors_counts = []
     
-    doctors_per_dept = db.session.query(
-        Department.name,
-        func.count(Doctor.doctor_id)
-    ).join(Doctor).group_by(Department.department_id).all()
+    for dept in departments:
+        dept_labels.append(dept.name)
+        count = Doctor.query.filter_by(department_id=dept.department_id).count()
+        doctors_counts.append(count)
     
-    dept_labels = [dept[0] for dept in doctors_per_dept]
-    doctors_counts = [dept[1] for dept in doctors_per_dept]
+    completed_counts = []
     
-    completed_per_dept = db.session.query(
-        Department.name,
-        func.count(Appointment.appointment_id)
-    ).join(Doctor).join(Appointment).filter(
-        Appointment.status == 'completed'
-    ).group_by(Department.department_id).all()
-    
-    completed_counts = [dept[1] for dept in completed_per_dept]
+    for dept in departments:
+        count = db.session.query(Appointment).join(
+            Appointment.doctor
+        ).filter(
+            Doctor.department_id == dept.department_id,
+            Appointment.status == 'completed'
+        ).count()
+        completed_counts.append(count)
     
     today = datetime.now().date()
     last_7_days = [(today - timedelta(days=i)) for i in range(6, -1, -1)]
@@ -74,9 +81,10 @@ def admin_dashboard():
         'next7Labels': next_7_labels,
         'next7Upcoming': next_7_upcoming
     }
+    print("Chart Data:", chart_data)
     
     return render_template(
-        'admin/dashboard.html',
+        'Admin/admin_dashboard.html',
         total_departments=total_departments,
         active_doctors=active_doctors,
         active_patients=active_patients,
@@ -172,7 +180,7 @@ def admin_create_doctor():
                 return render_template('Admin/admin_doctor_create.html', departments=departments,name=name, 
                                        experience=experience, about=about, email=email, username=username,department_id=department_id)
             
-            if experience.isdigit():
+            if not experience.isdigit() or int(experience) <= 0:
                 flash("Experience must be a positive integer.", "danger")
                 return render_template('Admin/admin_doctor_create.html', departments=departments,name=name, 
                                        experience=experience, about=about, email=email, username=username,department_id=department_id)
@@ -452,7 +460,7 @@ def admin_edit_patient(patient_id):
 
         return redirect(url_for('admin.admin_patients'))
     if request.method == 'GET':
-        return render_template('Admin/admin_edit_patient.html', patient=patient)
+        return render_template('Admin/admin_patient_edit.html', patient=patient)
     elif request.method == 'POST':
         name = request.form.get('name', '').strip()
         gender = request.form.get('gender', '').strip()
@@ -461,15 +469,15 @@ def admin_edit_patient(patient_id):
 
         if not all([name, gender, phone_no, dob_input]):
             flash("All required fields must be filled!", "danger")
-            return render_template('Admin/admin_edit_patient.html', patient=patient)
+            return render_template('Admin/admin_patient_edit.html', patient=patient)
 
         if not all(char.isalpha() or char.isspace() for char in name) or len(name) > 50:
             flash("Name can only contain letters and spaces and must not exceed 50 characters.", "danger")
-            return render_template('Admin/admin_edit_patient.html', patient=patient)
+            return render_template('Admin/admin_patient_edit.html', patient=patient)
 
         if gender not in ['Male', 'Female', 'Other']:
             flash("Invalid gender selected.", "danger")
-            return render_template('Admin/admin_edit_patient.html', patient=patient)
+            return render_template('Admin/admin_patient_edit.html', patient=patient)
   
         try:
             parsed_number = phonenumbers.parse(phone_no, None)
@@ -477,7 +485,7 @@ def admin_edit_patient(patient_id):
                 raise ValueError("Invalid phone number")
         except Exception:
             flash("Invalid phone number.", "danger")
-            return render_template('Admin/admin_edit_patient.html', patient=patient)
+            return render_template('Admin/admin_patient_edit.html', patient=patient)
 
         try:
             dob = datetime.strptime(dob_input, "%Y-%m-%d").date()
@@ -485,7 +493,7 @@ def admin_edit_patient(patient_id):
                 raise ValueError("DOB cannot be in the future")
         except Exception:
             flash("Invalid date of birth.", "danger")
-            return render_template('Admin/admin_edit_patient.html', patient=patient)
+            return render_template('Admin/admin_patient_edit.html', patient=patient)
 
         patient.name = name
         patient.gender = gender

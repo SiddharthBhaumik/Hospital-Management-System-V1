@@ -7,7 +7,7 @@ from controller.models import Roles,User,db,TimeSlot
 from werkzeug.security import generate_password_hash
 from flask import Flask,flash,redirect,url_for
 from flask_login import current_user,logout_user
-import datetime
+from datetime import datetime
 
 app =Flask(__name__ , template_folder='templates',static_folder='static')
 app.register_blueprint(main)
@@ -51,19 +51,22 @@ with app.app_context():
 
     admin_user=User.query.filter_by(email='admin@gmail.com').first()
     if not admin_user:
-        admin_user=User(email='admin@gmail.com',username='admin',password=generate_password_hash('1234567890'),role=admin_role)
+        admin_user=User(email='admin@gmail.com',username='administrator',password=generate_password_hash('1234567890'),role=admin_role)
         db.session.add(admin_user)
 
     from datetime import time
     start_hour = 7
-    end_hour = 22   # up to 21:00 start
+    end_hour = 22   
+
     for hour in range(start_hour, end_hour):
-        ts = TimeSlot(
-                slot_start=time(hour, 0)
-            )
-        db.session.add(ts)
+        slot_time = time(hour, 0)
+        existing_slot = TimeSlot.query.filter_by(slot_start=slot_time).first()
+        if not existing_slot:
+            ts = TimeSlot(slot_start=slot_time)
+            db.session.add(ts)
 
     db.session.commit()
+
 
 
 

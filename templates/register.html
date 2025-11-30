@@ -12,7 +12,6 @@
 
       <form action="{{ url_for('main.register') }}" method="POST">
 
-        <!-- Full Name -->
         <div class="mb-3">
           <label for="name" class="form-label">Full Name</label>
           <input type="text" class="form-control" id="name" name="name"
@@ -21,7 +20,6 @@
               placeholder="Enter your full name">
         </div>
 
-        <!-- Gender -->
         <div class="mb-3">
           <label for="gender" class="form-label">Gender</label>
           <select class="form-select" id="gender" name="gender" required>
@@ -32,14 +30,12 @@
           </select>
         </div>
 
-        <!-- Date of Birth -->
         <div class="mb-3">
           <label for="dob" class="form-label">Date of Birth</label>
           <input type="date" class="form-control" id="dob" name="dob"
                  value="{{ dob or '' }}" required max="{{ current_date }}">
         </div>
 
-        <!-- Phone Number -->
         <div class="mb-3">
           <label for="phone_no" class="form-label">Phone Number</label>
           <input type="tel" class="form-control" id="phone_no" name="phone_no"
@@ -47,14 +43,12 @@
                  placeholder="Enter your phone number">
         </div>
 
-        <!-- Email -->
         <div class="mb-3">
           <label for="email" class="form-label">Email</label>
           <input type="email" class="form-control" id="email" name="email"
                  value="{{ email or '' }}" required placeholder="Enter your email">
         </div>
 
-        <!-- Username -->
         <div class="mb-3">
           <label for="username" class="form-label">Username</label>
           <input type="text" class="form-control" id="username" name="username"
@@ -64,7 +58,6 @@
                  title="6–20 characters long, only letters and numbers">
         </div>
 
-        <!-- Password -->
         <div class="mb-3">
           <label for="password" class="form-label">Password</label>
           <input type="password" class="form-control" id="password" name="password"

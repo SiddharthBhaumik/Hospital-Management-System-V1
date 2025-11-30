@@ -94,7 +94,7 @@ def patient_edit_profile():
     else:
         patient = Patient.query.filter_by(user_id=current_user.user_id).first()
         if request.method == 'GET':
-            return render_template("Patient/edit_profile.html",patient=patient)
+            return render_template("Patient/patient_edit_profile.html",patient=patient)
         if request.method == 'POST':
             name = request.form.get("name", "").strip()
             gender = request.form.get("gender", "")
@@ -103,15 +103,15 @@ def patient_edit_profile():
 
             if not all([name, gender, phone_no, dob_str]):
                 flash("All required fields must be filled!", "danger")
-                return render_template("Patient/edit_profile.html",patient=patient)
+                return render_template("Patient/patient_edit_profile.html",patient=patient)
             
             if not all(char.isalpha() or char.isspace() for char in name) or len(name) > 50:
                 flash("Name can only contain letters and spaces and must not exceed 50 characters.", "danger")
-                return render_template("Patient/edit_profile.html",patient=patient)
+                return render_template("Patient/patient_edit_profile.html",patient=patient)
 
             if gender not in ['Male', 'Female', 'Other']:
                 flash("Invalid gender selected.", "danger")
-                return render_template("Patient/edit_profile.html",patient=patient)
+                return render_template("Patient/patient_edit_profile.html",patient=patient)
     
             try:
                 parsed_number = phonenumbers.parse(phone_no, None)
@@ -119,7 +119,7 @@ def patient_edit_profile():
                     raise ValueError("Invalid phone number")
             except Exception:
                 flash("Invalid phone number.", "danger")
-                return render_template("Patient/edit_profile.html",patient=patient)
+                return render_template("Patient/patient_edit_profile.html",patient=patient)
 
             try:
                 dob = datetime.strptime(dob_str, "%Y-%m-%d").date()
@@ -127,7 +127,7 @@ def patient_edit_profile():
                     raise ValueError("DOB cannot be in the future")
             except Exception:
                 flash("Invalid date of birth.", "danger")
-                return render_template("Patient/edit_profile.html",patient=patient)
+                return render_template("Patient/patient_edit_profile.html",patient=patient)
             patient.name = name
             patient.gender = gender
             patient.dob = dob
@@ -226,7 +226,7 @@ def patient_book_appointment(doctor_id):
             .order_by(DoctorAvailability.date, TimeSlot.slot_start).all())
 
         return render_template(
-            "Patient/book_appointment.html",
+            "Patient/patient_book.html",
             doctor=doctor,
             availabilities=availabilities
         )

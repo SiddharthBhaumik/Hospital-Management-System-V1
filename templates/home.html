@@ -1,31 +1,35 @@
-{% extends "main/base.html" %}
+{% extends "base.html" %}
 {% block title %}MedPulse{% endblock %}
 
 {% block content %}
 
-<div class="text-center mt-5">
-  <h1 class="mb-4">Welcome to MedPulse</h1>
-  <p class="lead mb-5">Please choose an option below to continue.</p>
+<div class="container mt-5">
+  <div class="text-center py-5 bg-light rounded-3 shadow-sm">
+    <h1 class="display-4 fw-bold mb-3">Welcome to MedPulse</h1>
+    <p class="lead mb-4">Your health, our priority. Access services tailored for patients and staff.</p>
+    <hr class="my-4">
+  </div>
+</div>
 
+<div class="container mt-5">
   <div class="row justify-content-center g-4">
 
-    <!-- Register -->
     <div class="col-md-3">
-      <div class="card shadow-sm">
+      <div class="card h-100 shadow-sm border-0 text-center">
         <div class="card-body">
-          <h5 class="card-title">New User</h5>
-          <p class="card-text">Create an account to access patient services.</p>
+          <h5 class="card-title fw-bold">New User</h5>
+          <p class="card-text text-muted">Create an account to access patient services.</p>
           <a href="{{ url_for('main.register') }}" class="btn btn-success w-100">Register</a>
         </div>
       </div>
     </div>
 
-    <!-- Patient Login -->
+
     <div class="col-md-3">
-      <div class="card shadow-sm">
+      <div class="card h-100 shadow-sm border-0 text-center">
         <div class="card-body">
-          <h5 class="card-title">Patient Login</h5>
-          <p class="card-text">Access your personal medical dashboard.</p>
+          <h5 class="card-title fw-bold">Patient Login</h5>
+          <p class="card-text text-muted">Access your personal medical dashboard.</p>
           <a href="{{ url_for('main.patient_login') }}" class="btn btn-primary w-100">Login</a>
         </div>
       </div>
@@ -33,10 +37,10 @@
 
     <!-- Staff Login -->
     <div class="col-md-3">
-      <div class="card shadow-sm">
+      <div class="card h-100 shadow-sm border-0 text-center">
         <div class="card-body">
-          <h5 class="card-title">Staff Login</h5>
-          <p class="card-text">For hospital staff and administrators.</p>
+          <h5 class="card-title fw-bold">Staff Login</h5>
+          <p class="card-text text-muted">For hospital staff and administrators.</p>
           <a href="{{ url_for('main.staff_login') }}" class="btn btn-warning w-100 text-white">Login</a>
         </div>
       </div>
@@ -46,4 +50,3 @@
 </div>
 
 {% endblock %}
-
