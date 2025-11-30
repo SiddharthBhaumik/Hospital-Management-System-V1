@@ -1,14 +1,87 @@
 from flask import Blueprint,render_template,request,flash,url_for,redirect
+from sqlalchemy import func
 from werkzeug.security import generate_password_hash
 from controller.models import *
 from flask_login import current_user,login_required
-from validate_email import validate_email, EmailNotValidError
-from datetime import datetime,date
+from email_validator import validate_email, EmailNotValidError
+from datetime import datetime,date,timedelta
 import phonenumbers
 import string
 
 
 admin =Blueprint('admin',__name__ ,url_prefix='/admin')
+
+@admin.route("/dashboard")
+def admin_dashboard():
+    total_departments = Department.query.count()
+    
+    active_doctors = db.session.query(Doctor).join(User).filter(
+        User.blacklisted == False
+    ).count()
+    
+    active_patients = db.session.query(Patient).join(User).filter(
+        User.blacklisted == False
+    ).count()
+    
+    doctors_per_dept = db.session.query(
+        Department.name,
+        func.count(Doctor.doctor_id)
+    ).join(Doctor).group_by(Department.department_id).all()
+    
+    dept_labels = [dept[0] for dept in doctors_per_dept]
+    doctors_counts = [dept[1] for dept in doctors_per_dept]
+    
+    completed_per_dept = db.session.query(
+        Department.name,
+        func.count(Appointment.appointment_id)
+    ).join(Doctor).join(Appointment).filter(
+        Appointment.status == 'completed'
+    ).group_by(Department.department_id).all()
+    
+    completed_counts = [dept[1] for dept in completed_per_dept]
+    
+    today = datetime.now().date()
+    last_7_days = [(today - timedelta(days=i)) for i in range(6, -1, -1)]
+    
+    last_7_completed = []
+    for day in last_7_days:
+        count = Appointment.query.filter(
+            func.date(Appointment.datetime) == day,
+            Appointment.status == 'completed'
+        ).count()
+        last_7_completed.append(count)
+    
+    last_7_labels = [day.strftime('%m/%d') for day in last_7_days]
+    
+    next_7_days = [(today + timedelta(days=i)) for i in range(7)]
+    
+    next_7_upcoming = []
+    for day in next_7_days:
+        count = Appointment.query.filter(
+            func.date(Appointment.datetime) == day,
+            Appointment.status == 'booked'
+        ).count()
+        next_7_upcoming.append(count)
+    
+    next_7_labels = [day.strftime('%m/%d') for day in next_7_days]
+    
+    chart_data = {
+        'deptLabels': dept_labels,
+        'doctorsPerDept': doctors_counts,
+        'completedPerDept': completed_counts,
+        'last7Labels': last_7_labels,
+        'last7Completed': last_7_completed,
+        'next7Labels': next_7_labels,
+        'next7Upcoming': next_7_upcoming
+    }
+    
+    return render_template(
+        'admin/dashboard.html',
+        total_departments=total_departments,
+        active_doctors=active_doctors,
+        active_patients=active_patients,
+        chart_data=chart_data
+    )
   
 @admin.route('/doctors')
 @login_required

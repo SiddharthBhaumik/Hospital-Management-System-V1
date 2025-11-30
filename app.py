@@ -7,8 +7,7 @@ from controller.models import Roles,User,db,TimeSlot
 from werkzeug.security import generate_password_hash
 from flask import Flask,flash,redirect,url_for
 from flask_login import current_user,logout_user
-
-# INIT
+import datetime
 
 app =Flask(__name__ , template_folder='templates',static_folder='static')
 app.register_blueprint(main)
@@ -27,9 +26,10 @@ def force_logout_blacklisted():
         logout_user()
         flash("Your account has been disabled.", "danger")
         return redirect(url_for('main.home'))
-
-
-# DATABASE CREATION
+    
+@app.context_processor
+def inject_current_year():
+    return {"current_year": datetime.now().year}
 
 with app.app_context():
     db.create_all()

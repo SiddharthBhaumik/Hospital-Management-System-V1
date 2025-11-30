@@ -2,7 +2,7 @@ from flask import Blueprint,render_template,request,redirect, url_for, flash,ses
 from flask_login import LoginManager,login_user,current_user,login_required,logout_user
 from controller.models import *
 from werkzeug.security import check_password_hash,generate_password_hash
-from validate_email import validate_email, EmailNotValidError
+from email_validator import validate_email, EmailNotValidError
 import phonenumbers
 import string
 from datetime import datetime,date
@@ -185,11 +185,11 @@ def register():
 @login_required
 def dashboard():
     if current_user.role.role == 'Patient':
-        return redirect(url_for('Patient/patient_dashboard.html'))
+        return redirect(url_for('Patient.patient_dashboard.html'))
     elif current_user.role.role == 'Doctor':
         return redirect(url_for('doctor.doctor_dashboard'))
     elif current_user.role.role == 'Admin':
-        return render_template('Admin/admin_dashboard.html')
+        return redirect(url_for('Admin.admin_dashboard'))
 
 @main.route('/patient-login', methods=['GET', 'POST'])
 def patient_login():

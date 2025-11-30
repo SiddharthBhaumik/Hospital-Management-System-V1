@@ -4,7 +4,7 @@ from flask_login import current_user,login_required,logout_user
 from werkzeug.security import generate_password_hash
 from datetime import date
 from sqlalchemy.orm import aliased
-from validate_email import validate_email, EmailNotValidError
+from email_validator import validate_email, EmailNotValidError
 import string
 
 doctor =Blueprint('doctor',__name__,url_prefix='/doctor' )
