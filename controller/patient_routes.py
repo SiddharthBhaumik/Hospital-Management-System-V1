@@ -248,11 +248,11 @@ def patient_book_appointment(doctor_id):
 
         if availability.doctor_id != doctor_id:
             flash("Invalid appointment slot.", "danger")
-            return redirect(url_for('patient.patient_book_appointment'))
+            return redirect(url_for('patient.patient_book_appointment',doctor_id=doctor_id))
 
         if availability.booked:
             flash("This slot has already been booked.", "danger")
-            return redirect(url_for('patient.patient_book_appointment'))
+            return redirect(url_for('patient.patient_book_appointment',doctor_id=doctor_id))
 
         slot_datetime = datetime.combine(
             availability.date,
@@ -261,18 +261,18 @@ def patient_book_appointment(doctor_id):
 
         if slot_datetime <= now:
             flash("Cannot book a slot in the past.", "danger")
-            return redirect(url_for('patient.patient_book_appointment'))
+            return redirect(url_for('patient.patient_book_appointment',doctor_id=doctor_id))
         
         conflict = (
             Appointment.query
             .filter_by(patient_id=patient.patient_id)
-            .filter(Appointment.datetime == slot_datetime)
+            .filter(Appointment.datetime == slot_datetime,Appointment.status=='booked')
             .first()
         )
 
         if conflict:
             flash("You already have another appointment at the same time!", "danger")
-            return redirect(url_for('patient.patient_book_appointment'))
+            return redirect(url_for('patient.patient_book_appointment',doctor_id=doctor_id))
 
         try:
             availability.booked = True
@@ -293,7 +293,7 @@ def patient_book_appointment(doctor_id):
         except Exception:
             db.session.rollback()
             flash("An error occurred while booking appointment.", "danger")
-            return redirect(url_for('patient.patient_book_appointment'))
+            return redirect(url_for('patient.patient_book_appointment',doctor_id=doctor_id))
 
 
 
