@@ -57,14 +57,11 @@ with app.app_context():
     from datetime import time
     start_hour = 7
     end_hour = 22   # up to 21:00 start
-
-    for day in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']:
-        for hour in range(start_hour, end_hour):
-            ts = TimeSlot(
-                weekday=day,
+    for hour in range(start_hour, end_hour):
+        ts = TimeSlot(
                 slot_start=time(hour, 0)
             )
-            db.session.add(ts)
+        db.session.add(ts)
 
     db.session.commit()
 

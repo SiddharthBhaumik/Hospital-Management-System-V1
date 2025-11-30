@@ -5,47 +5,43 @@
 
 <h2 class="mb-4">Set Your Availability for the Next 7 Days</h2>
 
-<form method="POST" action="{{ url_for('doctor.doctor_availability') }}">
+<form method="POST">
 
-    {% for date, slots in slots_by_date.items() %}
-    <div class="card mb-4 shadow-sm">
+    {% for day, slots in slots_by_date.items() %}
+    <div class="card mb-4">
+
         <div class="card-header bg-primary text-white">
-            <strong>{{ date }}</strong>
+            <strong>{{ day.strftime("%A, %B %d") }}</strong>
         </div>
 
         <div class="card-body">
-
             <div class="row">
+
                 {% for slot in slots %}
-                {% set availability = doctor_availability_map.get(slot.slot_id) %}
+                {% set availability = doctor_availability_map.get((day, slot.slot_id)) %}
+                {% set is_past = past_map[(day, slot.slot_id)] %}
                 {% set is_booked = availability.booked if availability else False %}
                 {% set is_selected = availability is not none %}
 
-                <div class="col-md-3 col-sm-4 col-6 mb-2">
+                <div class="col-md-3 col-sm-4 col-6 mb-3">
                     <div class="form-check">
 
                         <input class="form-check-input"
                                type="checkbox"
-                               id="slot_{{ slot.slot_id }}"
+                               id="slot_{{ day }}_{{ slot.slot_id }}"
                                name="selected_slots"
-                               value="{{ slot.slot_id }}"
-
-                               {% if is_selected %}
-                                   checked
-                               {% endif %}
-
-                               {% if is_booked %}
-                                   disabled
-                               {% endif %}
+                               value="{{ day }}|{{ slot.slot_id }}"
+                               {% if is_selected %}checked{% endif %}
+                               {% if is_booked or is_past %}disabled{% endif %}
                         >
 
-                        <label class="form-check-label" for="slot_{{ slot.slot_id }}">
+                        <label class="form-check-label" for="slot_{{ day }}_{{ slot.slot_id }}">
                             {{ slot.slot_start.strftime("%I:%M %p") }}
 
                             {% if is_booked %}
-                                <span class="text-danger ms-1" title="This slot already has appointments">
-                                    🔒
-                                </span>
+                                <span class="text-danger">🔒</span>
+                            {% elif is_past %}
+                                <span class="text-secondary">⏰</span>
                             {% endif %}
                         </label>
                     </div>
@@ -53,13 +49,13 @@
 
                 {% endfor %}
             </div>
-
         </div>
+
     </div>
     {% endfor %}
 
-    <div class="text-end mt-3">
-        <button type="submit" class="btn btn-success btn-lg">
+    <div class="text-end">
+        <button type="submit" class="btn btn-success">
             Save Availability
         </button>
     </div>

@@ -17,7 +17,7 @@
                     <p class="card-text"><strong>About:</strong> {{ doctor.about }}</p>
                 </div>
                 <div class="card-footer text-center">
-                    <a href="{{ url_for('patient.[atient_book_appointment', doctor_id=doctor.doctor_id) }}" class="btn btn-success btn-sm">
+                    <a href="{{ url_for('patient.patient_book_appointment', doctor_id=doctor.doctor_id) }}" class="btn btn-success btn-sm">
                         Book Appointment
                     </a>
                 </div>

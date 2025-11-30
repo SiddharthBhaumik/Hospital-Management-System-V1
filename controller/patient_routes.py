@@ -197,6 +197,88 @@ def patient_history():
             patient=patient,
             treatments=treatments
         )
+    
+@patient.route("/book/<int:doctor_id>", methods=["GET", "POST"])
+@login_required
+def patient_book_appointment(doctor_id):
+    if current_user.role.role != "Patient":
+        flash("You are not authorized to view this page.", "danger")
+        return redirect(url_for("main.dashboard"))
+    
+    patient = Patient.query.filter_by(user_id=current_user.user_id).first()
+    doctor = Doctor.query.join(Doctor.user).filter(User.blacklisted==False,Doctor.doctor_id==doctor_id)
+    if not doctor:
+        flash("Doctor not found!", "danger")
+        return redirect(url_for('patient.patient_dashboard'))
+
+    if request.method == "GET":
+        now = datetime.now()
+        availabilities = (
+            DoctorAvailability.query
+            .filter_by(doctor_id=doctor_id, booked=False)
+            .join(TimeSlot)
+            .filter((DoctorAvailability.date > now.date()) | (DoctorAvailability.date == now.date()) & (TimeSlot.slot_start > now.time()))
+            .order_by(DoctorAvailability.date, TimeSlot.slot_start).all())
+
+        return render_template(
+            "Patient/book_appointment.html",
+            doctor=doctor,
+            availabilities=availabilities
+        )
+
+    if request.method == "POST":
+        availability_id = request.form.get("availability_id")
+        availability = DoctorAvailability.query.get_or_404(availability_id)
+
+        if availability.doctor_id != doctor_id:
+            flash("Invalid appointment slot.", "danger")
+            return redirect(url_for('patient.patient_book_appointment'))
+
+        if availability.booked:
+            flash("This slot has already been booked.", "danger")
+            return redirect(url_for('patient.patient_book_appointment'))
+
+        slot_datetime = datetime.combine(
+            availability.date,
+            availability.time_slot.slot_start
+        )
+
+        if slot_datetime <= now:
+            flash("Cannot book a slot in the past.", "danger")
+            return redirect(url_for('patient.patient_book_appointment'))
+        
+        conflict = (
+            Appointment.query
+            .filter_by(patient_id=patient.patient_id)
+            .filter(Appointment.datetime == slot_datetime)
+            .first()
+        )
+
+        if conflict:
+            flash("You already have another appointment at the same time!", "danger")
+            return redirect(url_for('patient.patient_book_appointment'))
+
+        try:
+            availability.booked = True
+
+            new_appointment = Appointment(
+                patient_id=patient.patient_id,
+                doctor_id=doctor.doctor_id,
+                datetime=slot_datetime,
+                status="booked"
+            )
+
+            db.session.add(new_appointment)
+            db.session.commit()
+
+            flash("Appointment booked successfully!", "success")
+            return redirect(url_for("patient.patient_dashboard"))
+
+        except Exception:
+            db.session.rollback()
+            flash("An error occurred while booking appointment.", "danger")
+            return redirect(request.url)
+
 
 
 

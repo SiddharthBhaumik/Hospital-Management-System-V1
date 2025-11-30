@@ -225,61 +225,62 @@ def doctor_availability():
         return redirect(url_for('main.dashboard'))
     
     doctor = Doctor.query.get(current_user.user_id)
+    now = datetime.now()
     
     from datetime import datetime, timedelta
     if request.method=='GET':
         # Build slot list for next 7 days
         slots_by_date = {}
-        doctor_availability_map = {a.slot_id: a for a in doctor.availabilities}
-
+        doctor_availability_map = {}
+        past_map = {}
 
         for i in range(7):
             day = datetime.today().date() + timedelta(days=i)
-            weekday = day.strftime("%A")  # e.g. "Monday"
 
-            slots = TimeSlot.query.filter_by(weekday=weekday).order_by(TimeSlot.slot_start).all()
-            slots_by_date[day.strftime("%A, %B %d")] = slots
-        
-            return render_template('Doctor/doctor_availability.html',
-            slots_by_date=slots_by_date,
-            doctor_availability_map=doctor_availability_map
-        )
+            slots = TimeSlot.query.order_by(TimeSlot.slot_start).all()
+            slots_by_date[day] = slots
+
+            for slot in slots:
+                slot_datetime = datetime.combine(day, slot.slot_start)
+                past_map[(day, slot.slot_id)] = (slot_datetime < now)
+
+        for a in doctor.availabilities:
+            doctor_availability_map[(a.date, a.slot_id)] = a
+            return render_template("Doctor/doctor_availability.html",slots_by_date=slots_by_date,
+        doctor_availability_map=doctor_availability_map,past_map=past_map)
 
     if request.method=='POST':
-        
-        # Slots doctor wants to select now
-        selected = {int(x) for x in request.form.getlist("selected_slots")}
+        raw_selected = request.form.getlist("selected_slots")
+        selected = set()
 
-        # Existing availabilities (mapping slot_id → availability)
-        existing = {a.slot_id: a for a in doctor.availabilities}
+        for item in raw_selected:
+            date_str, slot_id = item.split("|")
+            selected.add((date.fromisoformat(date_str), int(slot_id)))
 
-        # STEP 1: Preserve booked slots (cannot be removed)
-        preserved_booked_slot_ids = {
-            slot_id for slot_id, a in existing.items()
-            if a.booked is True
+        existing = {(a.date, a.slot_id): a for a in doctor.availabilities}
+        preserved = {
+            (a.date, a.slot_id)
+            for a in doctor.availabilities
+            if a.booked
         }
-
-        # Final set = doctor’s selection + booked slots
-        final_slot_ids = selected.union(preserved_booked_slot_ids)
-
-        # STEP 2: Delete all unbooked availability entries
-        for slot_id, availability in existing.items():
-            if not availability.booked:  # Only delete unbooked slots
+        final = selected.union(preserved)
+        for key, availability in existing.items():
+            if key not in preserved:
                 db.session.delete(availability)
 
-        # STEP 3: Add new availabilities
-        for slot_id in final_slot_ids:
-            if slot_id not in preserved_booked_slot_ids:  # existing still contains booked slots
+
+        for date_val, slot_id in final:
+            if (date_val, slot_id) not in existing:
                 db.session.add(DoctorAvailability(
                     doctor_id=doctor.doctor_id,
+                    date=date_val,
                     slot_id=slot_id,
                     booked=False
                 ))
-
         try:
             db.session.commit()
             flash(f"Availabilities have been saved.", "success")
-        except Exception as e:
+        except Exception:
             db.session.rollback()
             flash("An error occurred while updating the availabilities.", "danger")
         return redirect(url_for("doctor.doctor_dashboard"))
