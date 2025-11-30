@@ -6,16 +6,15 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
-            <!-- Card -->
+         
             <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white text-center">
                     <h4 class="mb-0">Create New Department</h4>
                 </div>
                 <div class="card-body">
 
-                    <!-- Department Creation Form -->
                     <form method="POST" action="{{ url_for('admin.admin_create_department') }}">
-                        <!-- Department Name -->
+
                         <div class="mb-3">
                             <label for="name" class="form-label">Department Name</label>
                             <input 
@@ -31,7 +30,6 @@
                             >
                         </div>
 
-                        <!-- Department Description -->
                         <div class="mb-3">
                             <label for="description" class="form-label">Description</label>
                             <textarea 
@@ -45,7 +43,6 @@
                             ></textarea>
                         </div>
 
-                        <!-- Buttons -->
                         <div class="d-flex justify-content-between">
                             <a href="{{ url_for('admin.admin_departments') }}" class="btn btn-secondary">Back</a>
                             <button type="submit" class="btn btn-primary">Create Department</button>

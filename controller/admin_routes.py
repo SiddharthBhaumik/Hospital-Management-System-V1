@@ -289,11 +289,22 @@ def admin_doctors_blacklist(doctor_id):
             Appointment.query
             .filter(
                 Appointment.doctor_id == doctor.doctor_id, 
-                Appointment.status != "cancelled",
+                Appointment.status == "booked",
                 )
             ).all()
             for appt in blacklisted_appts:
                 appt.status = "cancelled"
+                appt_date = appt.datetime.date()
+                appt_time = appt.datetime.time()
+                slot = TimeSlot.query.filter_by(slot_start=appt_time).first()
+                if slot:
+                    availability = DoctorAvailability.query.filter_by(
+                        doctor_id=appt.doctor_id,
+                        date=appt_date,
+                        slot_id=slot.slot_id
+                    ).first()
+                    if availability:
+                        availability.booked = False
 
         try:
             db.session.commit()
@@ -509,7 +520,7 @@ def admin_edit_patient(patient_id):
 
         return redirect(url_for('admin.admin_patients'))
     
-@admin.route('/blacklist_patient/<int:patient_id>')
+@admin.route('/blacklist-patient/<int:patient_id>')
 @login_required
 def admin_patient_blacklist(patient_id):
     if current_user.role.role != 'Admin':
@@ -525,10 +536,21 @@ def admin_patient_blacklist(patient_id):
         user.blacklisted=not user.blacklisted 
         if user.blacklisted:
             blacklisted_appts = (
-            Appointment.query.filter(Appointment.patient_id == patient.patient_id,  Appointment.status != "cancelled")).all()
+            Appointment.query.filter(Appointment.patient_id == patient.patient_id,  Appointment.status == "booked")).all()
         
             for appt in blacklisted_appts:
                 appt.status = "cancelled"
+                appt_date = appt.datetime.date()
+                appt_time = appt.datetime.time()
+                slot = TimeSlot.query.filter_by(slot_start=appt_time).first()
+                if slot:
+                    availability = DoctorAvailability.query.filter_by(
+                        doctor_id=appt.doctor_id,
+                        date=appt_date,
+                        slot_id=slot.slot_id
+                    ).first()
+                    if availability:
+                        availability.booked = False
 
         try:
             db.session.commit()

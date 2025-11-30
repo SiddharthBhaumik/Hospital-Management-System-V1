@@ -6,8 +6,7 @@
 <div class="container mt-5">
     <h2>Edit Doctor Profile</h2>
     <form action="{{ url_for('admin.admin_doctors_edit',doctor_id=doctor.doctor_id) }}" method="POST">
-        
-        <!-- Doctor info -->
+ 
         <div class="mb-3">
             <label for="name" class="form-label">Full Name</label>
             <input type="text" class="form-control" id="name" name="name" required
@@ -40,7 +39,6 @@
             placeholder="Give a brief description">{{ doctor.about}}</textarea>
         </div>
 
-        <!-- Submit & Back -->
         <button type="submit" class="btn btn-primary">Save Changes</button>
         <a href="{{ url_for('admin.admin_doctors') }}" class="btn btn-secondary ms-2">Back</a>
     </form>

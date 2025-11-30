@@ -7,11 +7,9 @@
 
     <h2 class="mb-4">Patients</h2>
 
-    <!-- Search Bar with Dropdown -->
     <form method="GET" action="{{ url_for('admin.admin_patients') }}" class="mb-4">
         <div class="input-group">
 
-            <!-- Dropdown for search by options -->
             <select name="search_by" class="form-select" style="max-width: 200px;">
                 <option value="name" {% if search_by == 'name' or search_by == '' %}selected{% endif %}>Name</option>
                 <option value="id" {% if search_by == 'id' %}selected{% endif %}>Patient ID</option>
@@ -19,25 +17,20 @@
                 <option value="phone" {% if search_by == 'phone' %}selected{% endif %}>Phone</option>
             </select>
 
-            <!-- Input field for the search query -->
             <input type="text" name="query" class="form-control"
                 placeholder="Search..."
                 value="{{ query }}">
 
-            <!-- Submit button -->
             <button type="submit" class="btn btn-secondary">Search</button>
 
         </div>
     </form>
 
-
-    <!-- Patients List -->
     <div class="table-responsive">
         <table class="table table-bordered align-middle">
 
             <tbody>
                 {% for patient in patients %}
-                <!-- Row 1: Patient Info -->
                 <tr class="table-light">
                     <td>
                         <strong>ID:</strong> {{ patient.patient_id }} <br>
@@ -47,7 +40,6 @@
                     </td>
                 </tr>
 
-                <!-- Row 2: Action Buttons -->
                 <tr>
                     <td class="text-center">
 
@@ -66,7 +58,6 @@
                     </td>
                 </tr>
 
-                <!-- Spacer Row -->
                 <tr class="table-secondary"><td></td></tr>
                 {% endfor %}
             </tbody>

@@ -14,10 +14,8 @@
 
                 <div class="card-body">
 
-                    <!-- Edit Department Form -->
                     <form method="POST" action="{{ url_for('admin.admin_edit_department', department_id=dept.department_id) }}">
 
-                        <!-- Department Name -->
                         <div class="mb-3">
                             <label for="name" class="form-label">Department Name</label>
                             <input 
@@ -32,7 +30,6 @@
                             >
                         </div>
 
-                        <!-- Department Description -->
                         <div class="mb-3">
                             <label for="description" class="form-label">Description</label>
                             <textarea 
@@ -45,7 +42,6 @@
                             >{{ dept.description }}</textarea>
                         </div>
 
-                        <!-- Buttons -->
                         <div class="d-flex justify-content-between">
                             <a href="{{ url_for('admin.admin_departments') }}" class="btn btn-secondary">Back</a>
                             <button type="submit" class="btn btn-warning">Save Changes</button>

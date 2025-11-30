@@ -12,10 +12,9 @@
       </div>
 
       <div class="card-body">
-        <!-- Login Form -->
+  
         <form method="POST" action="{{ url_for('main.staff_login') }}">
 
-          <!-- Role -->
           <div class="mb-3">
             <label for="role" class="form-label">Select Role</label>
             <select class="form-select" id="role" name="role" required>
@@ -25,7 +24,6 @@
             </select>
           </div>
 
-          <!-- Email -->
           <div class="mb-3">
             <label for="email" class="form-label">Email address</label>
             <input 
@@ -38,7 +36,6 @@
               required>
           </div>
 
-          <!-- Username -->
           <div class="mb-3">
             <label for="username" class="form-label">Username</label>
             <input 
@@ -54,7 +51,6 @@
               title="Username must be 6–20 characters long and alphanumeric">
           </div>
 
-          <!-- Password -->
           <div class="mb-3">
             <label for="password" class="form-label">Password</label>
             <input 

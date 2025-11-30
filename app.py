@@ -64,9 +64,7 @@ with app.app_context():
         if not existing_slot:
             ts = TimeSlot(slot_start=slot_time)
             db.session.add(ts)
-
     db.session.commit()
-
 
 
 

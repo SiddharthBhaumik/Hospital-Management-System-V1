@@ -8,19 +8,7 @@
         <div class="card shadow p-4">
             <h3 class="card-title text-center mb-4">Edit Login Details</h3>
 
-            <!-- Flash messages -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-              {% if messages %}
-                {% for category, msg in messages %}
-                  <div class="alert alert-{{ category }} alert-sm" role="alert">
-                      {{ msg }}
-                  </div>
-                {% endfor %}
-              {% endif %}
-            {% endwith %}
-
             <form method="POST" action="{{ url_for('patient.patient_edit_login_details') }}">
-                <!-- Username -->
                 <div class="mb-3">
                     <label for="username" class="form-label">Username</label>
                     <input type="text"
@@ -36,7 +24,6 @@
                             pattern="[A-Za-z0-9]+">
                 </div>
 
-                <!-- Email -->
                 <div class="mb-3">
                     <label for="email" class="form-label">Email</label>
                     <input type="email"
@@ -48,7 +35,6 @@
                            required>
                 </div>
 
-                <!-- Password -->
                 <div class="mb-3">
                     <label for="password" class="form-label">
                         New Password <small class="text-muted">(leave blank to keep current)</small>

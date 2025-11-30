@@ -180,6 +180,17 @@ def patient_cancel_appointment(appt_id):
             return redirect(url_for('patient.patient_dashboard'))
 
         appointment.status = 'cancelled'
+        appt_date = appt.datetime.date()
+        appt_time = appt.datetime.time()
+        slot = TimeSlot.query.filter_by(slot_start=appt_time).first()
+        if slot:
+            availability = DoctorAvailability.query.filter_by(
+                        doctor_id=appt.doctor_id,
+                        date=appt_date,
+                        slot_id=slot.slot_id
+                    ).first()
+            if availability:
+                availability.booked = False
         try:
             db.session.commit()
             flash("Appointment cancelled successfully.", "success")
