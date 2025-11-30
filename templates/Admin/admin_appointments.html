@@ -8,11 +8,9 @@
 
     <h2 class="mb-4">Appointments Dashboard</h2>
 
-    <!-- Filters + Search -->
     <form method="GET" action="{{ url_for('admin.admin_appointments') }}" class="mb-4">
         <div class="row g-3">
 
-            <!-- Department -->
             <div class="col-md-3">
                 <label class="form-label">Department</label>
                 <select name="department_id" class="form-select">
@@ -26,7 +24,6 @@
                 </select>
             </div>
 
-            <!-- Patient -->
             <div class="col-md-3">
                 <label class="form-label">Patient</label>
                 <select name="patient_id" class="form-select">
@@ -40,7 +37,6 @@
                 </select>
             </div>
 
-            <!-- Doctor -->
             <div class="col-md-3">
                 <label class="form-label">Doctor</label>
                 <select name="doctor_id" class="form-select">
@@ -54,7 +50,6 @@
                 </select>
             </div>
 
-            <!-- Status -->
             <div class="col-md-3">
                 <label class="form-label">Status</label>
                 <select name="status" class="form-select">
@@ -65,14 +60,12 @@
                 </select>
             </div>
 
-            <!-- Search -->
             <div class="col-md-9">
                 <label class="form-label">Search</label>
                 <input type="text" class="form-control" name="query" placeholder="Search appointments..."
                        value="{{ query }}">
             </div>
 
-            <!-- Submit -->
             <div class="col-md-3 d-flex align-items-end">
                 <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
             </div>

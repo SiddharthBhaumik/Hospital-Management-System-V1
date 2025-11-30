@@ -13,18 +13,6 @@
         </a>
     </div>
 
-    <!-- Flash Messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-
     <!-- Departments Grid -->
     {% if departments %}
         <div class="row">
@@ -43,12 +31,15 @@
                                     Edit
                                 </a>
 
-                                {% if dept.doctors|length == 0 %}
-                                    <form action="{{ url_for('admin.admin_delete_department', department_id=dept.department_id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this department?');">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                                    </form>
+                                 {% if dept.doctors|length == 0 %}
+                                    <a href="{{ url_for('admin.admin_delete_department', department_id=dept.department_id) }}"
+                                        class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('Are you sure you want to delete this department?');">
+                                        Delete
+                                    </a>
                                 {% else %}
-                                    <button class="btn btn-sm btn-outline-secondary" disabled title="Cannot delete department with assigned doctors">
+                                    <button class="btn btn-sm btn-outline-secondary" disabled
+                                            title="Cannot delete department with assigned doctors">
                                         Delete
                                     </button>
                                 {% endif %}

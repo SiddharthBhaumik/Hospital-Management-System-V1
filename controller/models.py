@@ -85,7 +85,7 @@ class DoctorAvailability(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     doctor_id = db.Column(db.Integer,db.ForeignKey("doctor.doctor_id"),nullable=False)
     date = db.Column(db.Date, nullable=False) 
-    slot_id = db.Column(db.Integer,db.ForeignKey("time_slot.slot_id"),nullable=False)
+    slot_id = db.Column(db.Integer,db.ForeignKey("timeslots.slot_id"),nullable=False)
     booked = db.Column(db.Boolean, default=True)
 
     doctor = db.relationship("Doctor", back_populates="availabilities", uselist=False)

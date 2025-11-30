@@ -12,7 +12,6 @@
                 </div>
 
                 <div class="card-body">
-                    <!-- show flashes if any -->
                     {% with messages = get_flashed_messages(with_categories=true) %}
                       {% if messages %}
                         {% for category, msg in messages %}
@@ -40,7 +39,8 @@
                                 value="{{ user.username }}"
                                 required
                                 maxlength="50"
-                            >
+                                title="Username must be 6–20 characters long and alphanumeric"
+                                pattern="[A-Za-z0-9]+">
                         </div>
 
                         <div class="mb-3">
@@ -65,7 +65,7 @@
                                 class="form-control"
                                 placeholder="Enter new password (optional)"
                                 minlength="8"
-                                maxlength="50"
+                                title="Password must be at least 8 characters long and should only contain letters,numbers and special characters."
                                 autocomplete="new-password"
                             >
                         </div>

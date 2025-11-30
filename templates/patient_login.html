@@ -44,9 +44,9 @@
                   name="username" 
                   placeholder="Enter your username" 
                   required 
-                  maxlength="20" minlength="5"
-                  title="Username must be 5-20 characters long."
-                />
+                  maxlength="20" minlength="6"
+                  title="Username must be 6–20 characters long and alphanumeric"
+                  pattern="[A-Za-z0-9]+">
               </div>
 
               <!-- Password -->
@@ -59,8 +59,8 @@
                   name="password" 
                   placeholder="Enter your password" 
                   required 
-                  maxlength="50" minlength="8"
-                  title="Password must be at least 8 characters long"
+                  minlength="8"
+                  title="Password must be at least 8 characters long and should only contain letters,numbers and special characters."
                 />
               </div>
 

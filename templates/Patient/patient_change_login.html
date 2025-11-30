@@ -24,13 +24,15 @@
                 <div class="mb-3">
                     <label for="username" class="form-label">Username</label>
                     <input type="text"
-                           id="username"
-                           name="username"
-                           class="form-control"
-                           placeholder="Enter your username"
-                           value="{{ user.username }}"
-                           required
-                           maxlength="50">
+                            id="username"
+                            name="username"
+                            class="form-control"
+                            placeholder="Enter your username"
+                            value="{{ user.username }}"
+                            required
+                            maxlength="50"
+                            title="Username must be 6–20 characters long and alphanumeric"
+                            pattern="[A-Za-z0-9]+">
                 </div>
 
                 <!-- Email -->
@@ -56,7 +58,7 @@
                            class="form-control"
                            placeholder="Enter new password (optional)"
                            minlength="8"
-                           maxlength="50"
+                           title="Password must be at least 8 characters long and should only contain letters,numbers and special characters."
                            autocomplete="new-password">
                 </div>
 

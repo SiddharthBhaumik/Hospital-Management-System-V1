@@ -2,6 +2,11 @@ from flask import Blueprint,render_template,request,flash,url_for,redirect
 from werkzeug.security import generate_password_hash
 from controller.models import *
 from flask_login import current_user,login_required
+from validate_email import validate_email, EmailNotValidError
+from datetime import datetime,date
+import phonenumbers
+import string
+
 
 admin =Blueprint('admin',__name__ ,url_prefix='/admin')
   
@@ -9,9 +14,10 @@ admin =Blueprint('admin',__name__ ,url_prefix='/admin')
 @login_required
 def admin_doctors():
     if current_user.role.role != 'Admin':
+        flash("You are not authorized to perform this action.", "danger")
         return redirect(url_for('main.dashboard'))
     else:
-        search_by = request.args.get('search_by', 'name')  # default = name
+        search_by = request.args.get('search_by', 'name') 
         query = request.args.get('query', '').strip()
 
         doctors = Doctor.query
@@ -32,7 +38,7 @@ def admin_doctors():
         )
 
     
-@admin.route('/add_doctor',methods=['GET','POST'])
+@admin.route('/add-doctor',methods=['GET','POST'])
 @login_required
 def admin_create_doctor():
     if current_user.role.role != 'Admin':
@@ -43,77 +49,147 @@ def admin_create_doctor():
         if request.method=='GET':
             return render_template('Admin/admin_doctor_create.html',departments=departments)
         elif request.method=='POST':
-            email = request.form['email']
-            username = request.form['username']
-            password = request.form['password']
-            name = request.form['name']
-            department_id = request.form['department_id']
-            experience = request.form['experience']
-            about = request.form['about']
+            email = request.form.get('email', '').strip()
+            username = request.form.get('username', '').strip()
+            password = request.form.get('password', '')  
+            name = request.form.get('name', '').strip()
+            department_id = request.form.get('department_id', '').strip()
+            experience = request.form.get('experience', '').strip()
+            about = request.form.get('about', '').strip()
 
-            # Check if email already exists
+
+            if not all([email, username, password, name, department_id, experience]):
+                flash("All required fields must be filled!", "danger")
+                return render_template('Admin/admin_doctor_create.html',departments=departments, name=name, experience=experience, about=about, email=email, username=username,department_id=department_id)
+
+            try:
+                valid = validate_email(email)
+                email = valid.email 
+            except EmailNotValidError as e:
+                flash(f"Invalid email: {str(e)}", "danger")
+                return render_template('Admin/admin_doctor_create.html',departments=departments, name=name, experience=experience, about=about, email=email, username=username,department_id=department_id)
+
             email_exists = User.query.filter_by(email=email).first()
             if email_exists:
                 flash("Email already exists!", "danger")
                 return render_template('Admin/admin_doctor_create.html',departments=departments, name=name, experience=experience, about=about, email=email, username=username,department_id=department_id)
 
-# Check if username already exists
             username_exists = User.query.filter_by(username=username).first()
             if username_exists:
                 flash("Username already exists!", "danger")
-                return render_template('Admin/admin_doctor_create.html', departments=departments,name=name, experience=experience, about=about, email=email, username=username,department_id=department_id)
+                return render_template('Admin/admin_doctor_create.html', departments=departments,name=name, 
+                                       experience=experience, about=about, email=email, username=username,department_id=department_id)
+            if len(username) < 6 or len(username) > 20:
+                flash("Username must be 6–20 characters long.", "danger")
+                return render_template('Admin/admin_doctor_create.html', departments=departments,name=name, 
+                                       experience=experience, about=about, email=email, username=username,department_id=department_id)
+
+            if not username.isalnum():
+                flash("Username can only contain letters and numbers.", "danger")
+                return render_template('Admin/admin_doctor_create.html', departments=departments,name=name, 
+                                       experience=experience, about=about, email=email, username=username,department_id=department_id)
+            
+            department = Department.query.get(department_id)
+            if not department:
+                flash("Selected department does not exist!", "danger")
+                return render_template('Admin/admin_doctor_create.html', departments=departments,name=name, 
+                                       experience=experience, about=about, email=email, username=username,department_id=department_id)
+            if len(about) > 500:
+                flash("About section cannot exceed 500 characters.", "danger")
+                return render_template('Admin/admin_doctor_create.html', departments=departments,name=name, 
+                                       experience=experience, about=about, email=email, username=username,department_id=department_id)
+            
+            if experience.isdigit():
+                flash("Experience must be a positive integer.", "danger")
+                return render_template('Admin/admin_doctor_create.html', departments=departments,name=name, 
+                                       experience=experience, about=about, email=email, username=username,department_id=department_id)
+            
+            if not all(char.isalnum() or char in string.punctuation for char in password) or len(password) < 8:
+                flash("Password can only contain letters, numbers, or special characters and must be minimum 8 characters", "danger")
+                return render_template('Admin/admin_doctor_create.html', departments=departments,name=name, 
+                                       experience=experience, about=about, email=email, username=username,department_id=department_id)
+            
+            if not all(char.isalpha() or char.isspace() for char in name) or len(name)>50:
+                flash("Name can contain only letters and spaces and cannot exceed 50 characters", "danger")
+                return render_template('Admin/admin_doctor_create.html', departments=departments,name=name, 
+                                       experience=experience, about=about, email=email, username=username,department_id=department_id)
+
             
             doctor_role = Roles.query.filter_by(role='Doctor').first()
             doctor_user = User(
                 email=email,
                 username=username,
                 password=generate_password_hash(password),  
-                role=doctor_role
-            )
-            doctor=Doctor(
-                name=name, experience=experience, department_id=department_id,about=about,user=doctor_user
-            )
+                role=doctor_role)
+            doctor=Doctor(name=name, experience=experience, department_id=department_id,about=about,user=doctor_user)
 
             try:
                 db.session.add(doctor)
                 db.session.commit()
-                flash("Doctort added successfully!", "success")
+                flash("Doctor added successfully!", "success")
                 return redirect(url_for('admin.admin_doctors'))
-            except Exception as e:
+            except Exception:
                 db.session.rollback()
-                flash(f"Error adding doctor: {str(e)}", "danger")
+                flash(f"Error adding doctor", "danger")
                 return render_template('Admin/admin_doctor_create.html',departments=departments)
             
-@admin.route('/edit_doctor/<int:doctor_id>',methods=['GET','POST'])
+@admin.route('/edit-doctor/<int:doctor_id>', methods=['GET', 'POST'])
 @login_required
 def admin_doctors_edit(doctor_id):
     if current_user.role.role != 'Admin':
         flash("You are not authorized to perform this action.", "danger")
         return redirect(url_for('main.dashboard'))
-    else:
-        doctor=Doctor.query.get(doctor_id)
-        if not doctor:
-            flash("Doctor not found!", "danger")
-            return redirect(url_for('admin.admin_doctors'))
+
+    doctor = Doctor.query.get(doctor_id)
+    if not doctor:
+        flash("Doctor not found!", "danger")
+        return redirect(url_for('admin.admin_doctors'))
+
+    departments = Department.query.all()
+
+    if request.method == 'GET':
+        return render_template('Admin/admin_doctor_edit.html', doctor=doctor, departments=departments)
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        department_id = request.form.get('department_id', '').strip()
+        experience = request.form.get('experience', '').strip()
+        about = request.form.get('about', '').strip()
+
+        if not all([name, department_id, experience]):
+            flash("All required fields must be filled!", "danger")
+            return render_template('Admin/admin_doctor_edit.html', doctor=doctor, departments=departments)
+        if not all(char.isalpha() or char.isspace() for char in name) or len(name) > 50:
+            flash("Name can contain only letters and spaces and cannot exceed 50 characters", "danger")
+            return render_template('Admin/admin_doctor_edit.html', doctor=doctor, departments=departments)
+
+        if not experience.isdigit():
+            flash("Experience must be a positive integer.", "danger")
+            return render_template('Admin/admin_doctor_edit.html', doctor=doctor, departments=departments)
+
+        if len(about) > 500:
+            flash("About section cannot exceed 500 characters.", "danger")
+            return render_template('Admin/admin_doctor_edit.html', doctor=doctor, departments=departments)
+
+        department = Department.query.get(department_id)
+        if not department:
+            flash("Selected department does not exist!", "danger")
+            return render_template('Admin/admin_doctor_edit.html', doctor=doctor, departments=departments)
         
-        if request.method=='GET':
-            departments=Department.query.all()
-            return render_template('Admin/admin_doctor_edit.html',doctor=doctor,departments=departments)
-        elif request.method=='POST':
-            doctor.name = request.form.get('name')
-            doctor.department_id = request.form.get('department_id')  # assuming foreign key
-            doctor.experience = request.form.get('experience')
-            doctor.about = request.form.get('about')
+        doctor.name = name
+        doctor.department_id = department_id
+        doctor.experience = experience
+        doctor.about = about
 
-            try:
-                db.session.commit()  # save changes to the database
-                flash("Doctor updated successfully!", "success")
-            except Exception as e:
-                db.session.rollback()  # rollback in case of error
-                flash(f"Error updating doctor: {e}", "danger")
-            return redirect(url_for('admin.admin_doctors'))
+        try:
+            db.session.commit()
+            flash("Doctor updated successfully!", "success")
+        except Exception:
+            db.session.rollback()
+            flash("Error updating doctor", "danger")
 
-@admin.route('/blacklist_doctor/<int:doctor_id>')
+        return redirect(url_for('admin.admin_doctors'))
+
+@admin.route('/blacklist-doctor/<int:doctor_id>')
 @login_required
 def admin_doctors_blacklist(doctor_id):
     if current_user.role.role != 'Admin':
@@ -126,18 +202,15 @@ def admin_doctors_blacklist(doctor_id):
             return redirect(url_for('admin.admin_doctors'))
         user=doctor.user
         
-        user.blacklisted=not user.blacklisted # Value changes IMMEDIATELY (in Python)
+        user.blacklisted=not user.blacklisted
         if user.blacklisted:
-
             blacklisted_appts = (
             Appointment.query
             .filter(
-                Appointment.doctor_id == doctor.doctor_id,  # ensure we only touch this doctor's appts
+                Appointment.doctor_id == doctor.doctor_id, 
                 Appointment.status != "cancelled",
                 )
             ).all()
-        
-
             for appt in blacklisted_appts:
                 appt.status = "cancelled"
 
@@ -145,11 +218,10 @@ def admin_doctors_blacklist(doctor_id):
             db.session.commit()
             status = "blacklisted" if user.blacklisted else "removed from blacklist"
             flash(f"Doctor has been successfully {status}.", "success")
-        except Exception as e:
+        except Exception:
             db.session.rollback()
             flash("An error occurred while updating the blacklist status.", "danger")
 
-        # Redirect back to the doctors list or details page
         return redirect(url_for('admin.admin_doctors'))
 
 @admin.route('/departments')
@@ -162,71 +234,88 @@ def admin_departments():
         departments=Department.query.all()
         return render_template('Admin/admin_department.html',departments=departments)
 
-@admin.route('/add_department',methods=['GET','POST'])
-@login_required     
+@admin.route('/add-department', methods=['GET', 'POST'])
+@login_required
 def admin_create_department():
     if current_user.role.role != 'Admin':
         flash("You are not authorized to perform this action.", "danger")
         return redirect(url_for('main.dashboard'))
-    else:
-        if request.method=='GET':
-            return render_template('Admin/admin_dept_create.html')
-        elif request.method=='POST':
-            name = request.form.get('name')
-            description = request.form.get('description')
 
-            existing_dept=Department.query.filter_by(name=name).first()
+    if request.method == 'GET':
+        return render_template('Admin/admin_dept_create.html')
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        description = request.form.get('description', '').strip()
 
-            if existing_dept:
-                flash("Department already exists", "danger")
-                return render_template('Admin/admin_dept_create.html',name=name,description=description)
-            
-            dept=Department(name=name,description=description)
-            try:
-                db.session.add(dept)
-                db.session.commit()
-                flash("Department added successfully!", "success")
-                return redirect(url_for('admin.admin_departments'))
-            except Exception as e:
-                db.session.rollback()
-                flash(f"Error adding department: {str(e)}", "danger")
-                return render_template('Admin/admin_dept_create.html',name=name,description=description)
+        if not name or not description:
+            flash("Both department name and description are required!", "danger")
+            return render_template('Admin/admin_dept_create.html', name=name, description=description)
 
-@admin.route('/edit_department/<int:department_id>',methods=['GET','POST'])
-@login_required            
+        if not all(char.isalpha() or char.isspace() for char in name) or len(name) > 50:
+            flash("Department name can contain only letters and spaces and cannot exceed 50 characters.", "danger")
+            return render_template('Admin/admin_dept_create.html', name=name, description=description)
+
+        existing_dept = Department.query.filter_by(name=name).first()
+        if existing_dept:
+            flash("Department already exists", "danger")
+            return render_template('Admin/admin_dept_create.html', name=name, description=description)
+
+        dept = Department(name=name, description=description)
+        try:
+            db.session.add(dept)
+            db.session.commit()
+            flash("Department added successfully!", "success")
+            return redirect(url_for('admin.admin_departments'))
+        except Exception:
+            db.session.rollback()
+            flash("An unexpected error occurred while adding the department.", "danger")
+            return render_template('Admin/admin_dept_create.html', name=name, description=description)
+
+
+@admin.route('/edit-department/<int:department_id>', methods=['GET', 'POST'])
+@login_required
 def admin_edit_department(department_id):
     if current_user.role.role != 'Admin':
         flash("You are not authorized to perform this action.", "danger")
         return redirect(url_for('main.dashboard'))
-    else:
-        dept=Department.query.get(department_id)
-        if not dept:
-            flash("Department not found!", "danger")
-            return redirect(url_for('admin.admin_departments'))
+
+    dept = Department.query.get(department_id)
+    if not dept:
+        flash("Department not found!", "danger")
+        return redirect(url_for('admin.admin_departments'))
+
+    if request.method == 'GET':
+        return render_template('Admin/admin_dept_edit.html', dept=dept)
+    if request.method == 'POST':
+
+        name = request.form.get('name', '').strip()
+        description = request.form.get('description', '').strip()
+
+        if not name or not description:
+            flash("Both department name and description are required!", "danger")
+            return render_template('Admin/admin_dept_edit.html', dept=dept)
+
+        if not all(char.isalpha() or char.isspace() for char in name) or len(name) > 50:
+            flash("Department name can contain only letters and spaces and cannot exceed 50 characters.", "danger")
+            return render_template('Admin/admin_dept_edit.html', dept=dept)
+
+        existing_dept = Department.query.filter(Department.name == name, Department.department_id != department_id).first()
+        if existing_dept:
+            flash("Department name already exists", "danger")
+            return render_template('Admin/admin_dept_edit.html', dept=dept)
+
+        dept.name = name
+        dept.description = description
+
+        try:
+            db.session.commit()
+            flash("Department updated successfully!", "success")
+        except Exception:
+            db.session.rollback()
+            flash("An unexpected error occurred while updating the department.", "danger")
+        return redirect(url_for('admin.admin_departments'))
         
-        if request.method=='GET':
-            return render_template('Admin/admin_dept_edit.html',dept=dept)
-        elif request.method=='POST':
-            name = request.form.get('name')
-            existing_dept=Department.query.filter_by(name=name).first()
-
-            if existing_dept:
-                flash("Department name already exists", "danger")
-                return render_template('Admin/admin_dept_edit.html',dept=dept)
-            
-            dept.name = name
-            dept.desciption = request.form.get('description')
-
-            try:
-                db.session.commit()  # save changes to the database
-                flash("Department updated successfully!", "success")
-            except Exception as e:
-                db.session.rollback()  # rollback in case of error
-                flash(f"Error updating department: {e}", "danger")
-            return redirect(url_for('admin.admin_departments'))
-    
-            
-@admin.route('/delete_department/<int:department_id>')
+@admin.route('/delete-department/<int:department_id>')
 @login_required            
 def admin_delete_department(department_id):
     if current_user.role.role != 'Admin':
@@ -246,7 +335,7 @@ def admin_delete_department(department_id):
             db.session.delete(dept)
             db.session.commit()
             flash("Department deleted successfully!", "success")
-        except Exception as e:
+        except Exception:
             db.session.rollback()
             flash("An error occurred while deleting the department.", "danger")
         return redirect(url_for('admin.admin_departments'))
@@ -275,12 +364,7 @@ def admin_patients():
 
         patients = patients.all()
 
-        return render_template(
-            'Admin/admin_patients.html',
-            patients=patients,
-            search_by=search_by,
-            query=query
-        )
+        return render_template('Admin/admin_patients.html',patients=patients,search_by=search_by,query=query)
 
 @admin.route('/edit_patient/<int:patient_id>', methods=['GET', 'POST'])
 @login_required    
@@ -292,31 +376,58 @@ def admin_edit_patient(patient_id):
     patient = Patient.query.get(patient_id)
     if not patient:
         flash("Patient not found!", "danger")
-        return redirect(url_for('admin.admin_patients'))
 
+        return redirect(url_for('admin.admin_patients'))
     if request.method == 'GET':
         return render_template('Admin/admin_edit_patient.html', patient=patient)
-
     elif request.method == 'POST':
-        # Basic fields
-        patient.name = request.form.get('name').strip()
-        patient.gender = request.form.get('gender')
-        patient.phone_no = request.form.get('phone_no')
-        dob_input = request.form.get('dob')
-      
-        from datetime import datetime
-        patient.dob = datetime.strptime(dob_input, "%Y-%m-%d").date()
+        name = request.form.get('name', '').strip()
+        gender = request.form.get('gender', '').strip()
+        phone_no = request.form.get('phone_no', '').strip()
+        dob_input = request.form.get('dob', '').strip()
 
-        # Save changes
+        if not all([name, gender, phone_no, dob_input]):
+            flash("All required fields must be filled!", "danger")
+            return render_template('Admin/admin_edit_patient.html', patient=patient)
+
+        if not all(char.isalpha() or char.isspace() for char in name) or len(name) > 50:
+            flash("Name can only contain letters and spaces and must not exceed 50 characters.", "danger")
+            return render_template('Admin/admin_edit_patient.html', patient=patient)
+
+        if gender not in ['Male', 'Female', 'Other']:
+            flash("Invalid gender selected.", "danger")
+            return render_template('Admin/admin_edit_patient.html', patient=patient)
+  
+        try:
+            parsed_number = phonenumbers.parse(phone_no, None)
+            if not phonenumbers.is_valid_number(parsed_number):
+                raise ValueError("Invalid phone number")
+        except Exception:
+            flash("Invalid phone number.", "danger")
+            return render_template('Admin/admin_edit_patient.html', patient=patient)
+
+        try:
+            dob = datetime.strptime(dob_input, "%Y-%m-%d").date()
+            if dob > date.today():
+                raise ValueError("DOB cannot be in the future")
+        except Exception:
+            flash("Invalid date of birth.", "danger")
+            return render_template('Admin/admin_edit_patient.html', patient=patient)
+
+        patient.name = name
+        patient.gender = gender
+        patient.phone_no = phone_no
+        patient.dob = dob
+
         try:
             db.session.commit()
             flash("Patient updated successfully!", "success")
-        except Exception as e:
+        except Exception:
             db.session.rollback()
-            flash(f"Error updating patient: {e}", "danger")
+            flash("Error updating patient.", "danger")
 
         return redirect(url_for('admin.admin_patients'))
-
+    
 @admin.route('/blacklist_patient/<int:patient_id>')
 @login_required
 def admin_patient_blacklist(patient_id):
@@ -330,18 +441,11 @@ def admin_patient_blacklist(patient_id):
             return redirect(url_for('admin.admin_patients'))
         user=User.query.filter_by(user_id=patient.user_id).first()
         
-        user.blacklisted=not user.blacklisted # Value changes IMMEDIATELY (in Python)
+        user.blacklisted=not user.blacklisted 
         if user.blacklisted:
-
             blacklisted_appts = (
-            Appointment.query
-            .filter(
-                Appointment.patient_id == patient.patient_id,  # ensure we only touch this doctor's appts
-                Appointment.status != "cancelled",
-                )
-            ).all()
+            Appointment.query.filter(Appointment.patient_id == patient.patient_id,  Appointment.status != "cancelled")).all()
         
-
             for appt in blacklisted_appts:
                 appt.status = "cancelled"
 
@@ -349,11 +453,10 @@ def admin_patient_blacklist(patient_id):
             db.session.commit()
             status = "blacklisted" if user.blacklisted else "removed from blacklist"
             flash(f"Patient has been successfully {status}.", "success")
-        except Exception as e:
+        except Exception:
             db.session.rollback()
             flash("An error occurred while updating the blacklist status.", "danger")
 
-        # Redirect back to the doctors list or details page
         return redirect(url_for('admin.admin_patients'))
     
 @admin.route('/appointments')
@@ -363,34 +466,22 @@ def admin_appointments():
         flash("You are not authorized to perform this action.", "danger")
         return redirect(url_for('main.dashboard'))
     else:
-        # ---- GET Filters ----
         department_id = request.args.get('department_id', '')
         patient_id = request.args.get('patient_id', '')
         doctor_id = request.args.get('doctor_id', '')
         status = request.args.get('status', '')
         query = request.args.get('query', '').strip()
 
-       
-        appointments = (
-            Appointment.query
-            .join(Appointment.doctor)     
-            .join(Doctor.department)   
-            .join(Appointment.patient)    
-        )
+        appointments = (Appointment.query.join(Appointment.doctor).join(Doctor.department).join(Appointment.patient))
 
-        # ---- Apply filters ----
         if department_id:
             appointments = appointments.filter(Doctor.department_id == department_id)
-
         if patient_id:
             appointments = appointments.filter(Appointment.patient_id == patient_id)
-
         if doctor_id:
             appointments = appointments.filter(Appointment.doctor_id == doctor_id)
-
         if status:
             appointments = appointments.filter(Appointment.status == status)
-
         if query:
             appointments = appointments.filter(
             (Doctor.name.ilike(f"%{query}%")) |
