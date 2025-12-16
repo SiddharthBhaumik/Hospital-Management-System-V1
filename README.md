@@ -2,12 +2,9 @@
 
 <p>A role-based Flask web application for managing doctors, patients, departments, appointments, and treatment history.</p>
 
-<h2>🚀 Steps for Setup</h2>
+<h2>🚀 Steps for Setup </h2>
 
 <ol>
-  <li><b>Install Git CLI</b> on your Windows system.</li>
-  <li><b>Create a GitHub account</b> using your IITM email ID.</li>
-  <li>Go to <b>github.com</b> and <b>create a new repository</b> (set it as <b>Private</b>).</li>
   <li><b>Clone the repository</b> to your local system using:
     <pre><code>git clone &lt;your-repo-url&gt;</code></pre>
   </li>
